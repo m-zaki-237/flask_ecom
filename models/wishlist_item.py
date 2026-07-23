@@ -1,13 +1,12 @@
-from datetime import datetime
-
 from database import db
+
 class WishlistItem(db.Model):
     __tablename__ = 'wishlist_items'
 
     wishlist_item_id = db.Column(db.Integer, primary_key=True)
     wishlist_id = db.Column(db.Integer, db.ForeignKey('wishlist.wishlist_id', ondelete='CASCADE'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id', ondelete='CASCADE'), nullable=False)
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+    added_at = db.Column(db.DateTime, server_default=db.func.now())
 
     product = db.relationship('Product', backref='wishlist_items')
 

@@ -1,6 +1,6 @@
 from database import db
 
-class Role_Permission(db.model):
+class RolePermission(db.model):
     __tablename__ = "role_permissions"
     role_permission_id = db.Column(db.Integer, primary_key = True)
     permission_id = db.Column(db.Integer, db.ForeignKey("permissions.permission_id"), nullable = False)
@@ -17,4 +17,4 @@ class Role_Permission(db.model):
     )
 
     def __repr__(self):
-        return f"<Role_Permission {self.role_permission_id}>"
+        return f"<RolePermission {self.role_permission_id}>"
