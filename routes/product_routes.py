@@ -1,0 +1,120 @@
+from flask import Blueprint, jsonify, request
+from database import db
+from models.product import Product
+from models.category import Category
+product_bp = Blueprint("product_routes", __name__)
+
+@product_bp.route("/products", methods=["GET"])
+def get_products():
+    products = Product.query.all()
+    result = []
+    print(products)
+    for product in products:
+        result.append({
+            "product_id": product.product_id,
+            "image_url": product.image_url,
+            "product_name": product.product_name,
+            "price": product.price,
+            "stock": product.stock,
+            "category_id" : product.category_id
+        })
+    return jsonify(result)
+
+@product_bp.route("/product/<int:product_id>", methods=["GET"])
+def get_product(product_id):
+    product = Product.query.get(product_id)
+
+    if not product:
+        return {"message": "product not found!"}, 404
+    
+    return jsonify({
+        "product_id": product.product_id,
+        "image_url": product.image_url,
+        "product_name": product.product_name,
+        "price": product.price,
+        "stock": product.stock,
+        "category_id" : product.category_id
+    }), 200
+
+@product_bp.route("/product/create", methods=["POST"])
+def create_product():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "No data provided"}), 400
+
+    required_fields = [
+        "image_url",
+        "product_name",
+        "price",
+        "stock",
+        "category_id"
+    ]
+
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"message": f"{field} is required"}), 400
+
+    if data["price"] < 0:
+        return jsonify({"message": "Price cannot be negative"}), 400
+
+    if data["stock"] < 0:
+        return jsonify({"message": "Stock cannot be negative"}), 400
+
+    category = Category.query.get(data["category_id"])
+
+    if not category:
+        return jsonify({"message": "Invalid category"}), 400
+
+    new_product = Product(
+        image_url=data["image_url"],
+        product_name=data["product_name"],
+        price=data["price"],
+        stock=data["stock"],
+        category_id=data["category_id"]
+    )
+
+    db.session.add(new_product)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Product created successfully",
+        "product_id": new_product.product_id
+    }), 201
+
+@product_bp.route("/product/update/<int:product_id>", methods=["PATCH"])
+def update_product(product_id):
+    product = Product.query.get(product_id)
+
+    if not product:
+        return {"message": "product not found!"}, 404
+
+    data = request.json
+
+    product.image_url = data.get("image_url", product.image_url)
+    product.product_name = data.get("product_name", product.product_name)
+    product.price = data.get("price", product.price)
+    product.stock = data.get("stock", product.stock)
+    product.category_id = data.get("category_id", product.category_id)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "product updated successfully",
+        "product_id": product.product_id
+    }), 200
+
+@product_bp.route("/product/delete/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    product = Product.query.get(product_id)
+
+    if not product:
+        return {"message": "product not found!"}, 404
+
+    db.session.delete(product)
+    db.session.commit()
+
+    return jsonify({
+        "message": "product deleted successfully",
+        "product_id": product.product_id
+    }), 200
