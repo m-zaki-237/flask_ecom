@@ -1,7 +1,9 @@
-from flask import Flask
+from flask import Flask , jsonify
 from config import Config
 from database import db
 from flask_jwt_extended import JWTManager
+from sqlalchemy.exc import SQLAlchemyError
+
 app = Flask(__name__)
 app.config.from_object(Config)
 jwt = JWTManager(app)
@@ -21,6 +23,7 @@ from models.wishlist import Wishlist
 from models.wishlist_item import WishlistItem
 from models.support_ticket import SupportTicket
 from models.payment import Payment
+
 #Routes
 from routes.user_routes import user_bp
 from routes.product_routes import product_bp
@@ -31,6 +34,7 @@ from routes.review_routes import review_bp
 from routes.wishlist_routes import wishlist_bp
 from routes.support_ticket_routes import support_ticket_bp
 from routes.payment_routes import payment_bp
+
 #Blueprints
 app.register_blueprint(user_bp)
 app.register_blueprint(product_bp)
@@ -42,12 +46,29 @@ app.register_blueprint(wishlist_bp)
 app.register_blueprint(support_ticket_bp)
 app.register_blueprint(payment_bp)
 
+@app.errorhandler(SQLAlchemyError)
+def handle_db_error(e):
+    db.session.rollback()
+    return jsonify({"error": "database error", "details":str(e)}), 500
+@app.errorhandler(404)
+def handle_404(e):
+    return jsonify({"error": "resource not found"}), 404
+@app.errorhandler(400)
+def handle_400(e):
+    return jsonify({"error": "bad request"}), 400
+@app.errorhandler(403)
+def handle_403(e):
+    return jsonify({"error": "access forbidden"}), 403
+@app.errorhandler(Exception)
+def handle_exception(e):
+    db.session.rollback()
+    return jsonify({"error": "internal server error", "details": str(e)}), 500
 
 @app.route("/")
 def home():
-    return {
+    return jsonify({
         "message": "Api running"
-    }
+    })
 
 
 if __name__ == "__main__":
