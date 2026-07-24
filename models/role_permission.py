@@ -1,6 +1,6 @@
 from database import db
 
-class RolePermission(db.model):
+class RolePermission(db.Model):
     __tablename__ = "role_permissions"
     role_permission_id = db.Column(db.Integer, primary_key = True)
     permission_id = db.Column(db.Integer, db.ForeignKey("permissions.permission_id"), nullable = False)
