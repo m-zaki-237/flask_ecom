@@ -3,12 +3,13 @@ from database import db
 from models.user import User
 from models.role import Role
 from werkzeug.security import generate_password_hash, check_password_hash
-
-
+from flask_jwt_extended import create_access_token
+from middlewares.auth import jwt_required, role_required
 user_bp = Blueprint("user_routes", __name__)
 
 
 @user_bp.route("/users", methods=["GET"])
+@role_required("admin")
 def get_users():
     users = User.query.all()
     result = []
@@ -25,6 +26,7 @@ def get_users():
     return jsonify(result)
 
 @user_bp.route("/user/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_user(user_id):
     user = User.query.get(user_id)
 
@@ -77,8 +79,13 @@ def login_user():
         return jsonify({"message": "invalid email or password"}), 404
 
     if check_password_hash(user.password, data["password"]):
+        access_token = create_access_token(
+            identity=str(user.user_id),
+            additional_claims = {"role":user.role.role_name}
+        )
         return jsonify({
             "message": "login successful",
+            "access_token": access_token,
             "user_id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -89,6 +96,7 @@ def login_user():
         return jsonify({"message": "invalid credentials"}), 401
 
 @user_bp.route("/user/update/<int:user_id>", methods=["PATCH"])
+@jwt_required()
 def update_user(user_id):
     user = User.query.get(user_id)
 
@@ -109,6 +117,7 @@ def update_user(user_id):
     return jsonify({"message": "user updated successfully"}), 200
 
 @user_bp.route("/user/delete/<int:user_id>", methods=["DELETE"])
+@role_required("admin")
 def delete_user(user_id):
     user = User.query.get(user_id)
 

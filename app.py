@@ -1,10 +1,10 @@
 from flask import Flask
 from config import Config
 from database import db
-
+from flask_jwt_extended import JWTManager
 app = Flask(__name__)
 app.config.from_object(Config)
-
+jwt = JWTManager(app)
 db.init_app(app)
 
 #Models

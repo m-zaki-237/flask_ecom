@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.category import Category
-
+from middlewares.auth import role_required, jwt_required
 category_bp = Blueprint("category_routes", __name__)
 
 @category_bp.route("/categories", methods=["GET"])
@@ -26,6 +26,7 @@ def get_category(category_id):
         "category_name": category.category_name
     }), 200
 @category_bp.route("/category/create", methods=["POST"])
+@role_required("admin","seller")
 def create_category():
     data = request.json
 
@@ -46,6 +47,7 @@ def create_category():
     }), 201
 
 @category_bp.route("/category/update/<int:category_id>", methods=["PATCH"])
+@role_required("admin","seller")
 def update_category(category_id):
     category = Category.query.get(category_id)
     if not category:
@@ -62,6 +64,7 @@ def update_category(category_id):
     }), 200
 
 @category_bp.route("/category/delete/<int:category_id>", methods=["DELETE"])
+@role_required("admin")
 def delete_category(category_id):
     category = Category.query.get(category_id)
     if not category:

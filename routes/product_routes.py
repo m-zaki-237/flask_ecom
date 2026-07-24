@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.product import Product
 from models.category import Category
+from middlewares.auth import jwt_required, role_required
+
 product_bp = Blueprint("product_routes", __name__)
 
 @product_bp.route("/products", methods=["GET"])
@@ -37,6 +39,7 @@ def get_product(product_id):
     }), 200
 
 @product_bp.route("/product/create", methods=["POST"])
+@role_required("admin","seller")
 def create_product():
     data = request.get_json()
 
@@ -83,6 +86,7 @@ def create_product():
     }), 201
 
 @product_bp.route("/product/update/<int:product_id>", methods=["PATCH"])
+@role_required("admin","seller")
 def update_product(product_id):
     product = Product.query.get(product_id)
 
@@ -105,6 +109,7 @@ def update_product(product_id):
     }), 200
 
 @product_bp.route("/product/delete/<int:product_id>", methods=["DELETE"])
+@role_required("admin","seller")
 def delete_product(product_id):
     product = Product.query.get(product_id)
 
