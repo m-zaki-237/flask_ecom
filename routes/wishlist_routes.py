@@ -2,9 +2,12 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.wishlist import Wishlist
 from models.wishlist_item import WishlistItem
+from middlewares.auth import role_required, jwt_required
+
 wishlist_bp = Blueprint('wishlist', __name__)
     
 @wishlist_bp.route('/wishlists', methods=['POST'])
+@jwt_required()
 def create_wishlist():
     data = request.get_json()
 
@@ -35,6 +38,7 @@ def create_wishlist():
     }), 201
 
 @wishlist_bp.route('/wishlists/<int:wishlist_id>', methods=['GET'])
+@jwt_required()
 def get_wishlist(wishlist_id):
     wishlist = Wishlist.query.get(wishlist_id)
     if not wishlist:
@@ -55,6 +59,7 @@ def get_wishlist(wishlist_id):
     return jsonify(wishlist_data), 200
 
 @wishlist_bp.route('/wishlists/<int:wishlist_id>', methods=['DELETE'])
+@jwt_required()
 def delete_wishlist(wishlist_id):
     wishlist = Wishlist.query.get(wishlist_id)
     if not wishlist:
@@ -66,6 +71,7 @@ def delete_wishlist(wishlist_id):
     return jsonify({'message': 'Wishlist deleted successfully'}), 200
 
 @wishlist_bp.route('/wishlists/<int:wishlist_id>/items', methods=['POST'])
+@jwt_required()
 def add_item_to_wishlist(wishlist_id):
     wishlist = Wishlist.query.get(wishlist_id)
     if not wishlist:
@@ -82,3 +88,19 @@ def add_item_to_wishlist(wishlist_id):
     db.session.commit()
 
     return jsonify({'message': 'Item added to wishlist successfully', 'item_id': new_item.wishlist_item_id}), 201
+
+@wishlist_bp.route('/wishlists/<int:wishlist_id>/items/<int:item_id>', methods=['DELETE'])
+@jwt_required()
+def remove_item_from_wishlist(wishlist_id, item_id):
+    wishlist = Wishlist.query.get(wishlist_id)
+    if not wishlist:
+        return jsonify({'error': 'Wishlist not found'}), 404
+
+    item = WishlistItem.query.get(item_id)
+    if not item or item.wishlist_id != wishlist_id:
+        return jsonify({'error': 'Item not found in this wishlist'}), 404
+
+    db.session.delete(item)
+    db.session.commit()
+
+    return jsonify({'message': 'Item removed from wishlist successfully'}), 200

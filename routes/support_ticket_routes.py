@@ -1,10 +1,12 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.support_ticket import SupportTicket
+from middlewares.auth import role_required, jwt_required
 
 support_ticket_bp = Blueprint('support_ticket', __name__)
 
 @support_ticket_bp.route("/support_tickets", methods=["GET"])
+@role_required("admin")
 def get_all_support_tickets():
     support_ticket = SupportTicket.query.all()
     support_tickets = []
@@ -21,6 +23,7 @@ def get_all_support_tickets():
     return jsonify(support_tickets), 200
 
 @support_ticket_bp.route("/support_tickets/<int:ticket_id>", methods=["GET"])
+@jwt_required()
 def get_support_tickets(ticket_id):
     ticket = SupportTicket.query.get(ticket_id)
     if not ticket:
@@ -37,6 +40,7 @@ def get_support_tickets(ticket_id):
     return jsonify(ticket_info), 200
 
 @support_ticket_bp.route("/support_tickets", methods=["POST"])
+@jwt_required()
 def create_support_ticket():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -53,6 +57,7 @@ def create_support_ticket():
     return jsonify({"message":"ticket generated successfully", "ticket_id":new_ticket.ticket_id})
 
 @support_ticket_bp.route("/support_tickets/<int:ticket_id>", methods=["DELETE"])
+@role_required("admin")
 def delete_support_ticket(ticket_id):
     ticket = SupportTicket.query.get(ticket_id)
     if not ticket:
@@ -64,6 +69,7 @@ def delete_support_ticket(ticket_id):
     return jsonify({'message':'ticket delete successfully'})
 
 @support_ticket_bp.route("/support_tickets/<int:ticket_id>", methods=["PATCH"])
+@role_required("admin")
 def update_support_ticket_status(ticket_id):
     ticket = SupportTicket.query.get(ticket_id)
 

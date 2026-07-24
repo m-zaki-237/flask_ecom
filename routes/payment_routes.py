@@ -2,15 +2,16 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.order import Order
 from models.payment import Payment
-
+from middlewares.auth import jwt_required, role_required
 payment_bp = Blueprint('payment', __name__)
 
 @payment_bp.route('/payments', methods=['GET'])
+@role_required("admin")
 def get_payment():
     payments = Payment.query.all()
     result = []
     if not payments:
-        return jsonify({"error":"no payments found"})
+        return jsonify({"error":"no payments found"}) , 404
     for payment in payments:
         result.append({
             "payment_id": payment.payment_id,
@@ -22,10 +23,11 @@ def get_payment():
     return jsonify(result)
 
 @payment_bp.route('/payments/<int:payment_id>', methods=['GET'])
+@jwt_required()
 def get_payment_by_id(payment_id):
     payment = Payment.query.get(payment_id)
     if not payment:
-        return jsonify({"error":"no payment found"})
+        return jsonify({"error":"no payment found"}) , 404
 
     payment_info = {
         "payment_id": payment.payment_id,
@@ -38,6 +40,7 @@ def get_payment_by_id(payment_id):
     return jsonify(payment_info)
 
 @payment_bp.route('/payments/create', methods=['POST'])
+@jwt_required()
 def create_payment():
     data = request.get_json()
     order_id = data.get('order_id')
@@ -46,7 +49,7 @@ def create_payment():
     payment_status = data.get('payment_status')
 
     if not order_id:
-        return jsonify({"error":"order id missing!"})
+        return jsonify({"error":"order id missing!"}) , 400
 
     new_payment = Payment(order_id=order_id, amount=amount, payment_method=payment_method, payment_status=payment_status)
     db.session.add(new_payment)
@@ -55,10 +58,11 @@ def create_payment():
     return jsonify({"message":"payment created successfully", "payment_id": new_payment.payment_id})
 
 @payment_bp.route('/payments/<int:payment_id>', methods=['DELETE'])
+@role_required("admin")
 def delete_payment(payment_id):
     payment = Payment.query.get(payment_id)
     if not payment:
-        return jsonify({"error":"payment not found"})
+        return jsonify({"error":"payment not found"}) , 404
 
     db.session.delete(payment)
     db.session.commit()
@@ -66,10 +70,11 @@ def delete_payment(payment_id):
     return jsonify({"message": "payment deleted successfully"})
 
 @payment_bp.route('/payments/update/<int:payment_id>', methods=['PATCH'])
+@role_required("admin")
 def update_payment(payment_id):
     payment = Payment.query.get(payment_id)
     if not payment:
-        return jsonify({"error": "no payment found!"})
+        return jsonify({"error": "no payment found!"}) , 404
 
     data = request.get_json()
     if "payment_status" in data:

@@ -2,9 +2,13 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.cart import Cart
 from models.cart_item import CartItem
+from models.product import Product
+from middlewares.auth import role_required, jwt_required
+
 cart_bp = Blueprint('cart', __name__)
 
 @cart_bp.route('/cart', methods=['POST'])
+@jwt_required()
 def create_cart():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -19,6 +23,7 @@ def create_cart():
     return jsonify({'message': 'Cart created successfully', 'cart_id': new_cart.cart_id}), 201
 
 @cart_bp.route('/cart/<int:cart_id>', methods=['GET'])
+@jwt_required()
 def get_cart(cart_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -33,6 +38,7 @@ def get_cart(cart_id):
     return jsonify(cart_data), 200
 
 @cart_bp.route('/cart/<int:cart_id>', methods=['DELETE'])
+@jwt_required()
 def delete_cart(cart_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -44,6 +50,7 @@ def delete_cart(cart_id):
     return jsonify({'message': 'Cart deleted successfully'}), 200
 
 @cart_bp.route('/cart/<int:cart_id>/items', methods=['POST'])
+@jwt_required()
 def add_item_to_cart(cart_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -55,7 +62,12 @@ def add_item_to_cart(cart_id):
 
     if not product_id or not quantity:
         return jsonify({'error': 'Product ID and quantity are required'}), 400
-
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    if quantity > product.stock:
+        return jsonify({'error': f'Only {product.stock} units available'}), 400
+    
     new_item = CartItem(cart_id=cart_id, product_id=product_id, quantity=quantity)
     db.session.add(new_item)
     db.session.commit()
@@ -63,6 +75,7 @@ def add_item_to_cart(cart_id):
     return jsonify({'message': 'Item added to cart successfully', 'cart_item_id': new_item.cart_item_id}), 201
 
 @cart_bp.route('/cart/<int:cart_id>/items/<int:item_id>', methods=['DELETE'])
+@jwt_required()
 def remove_item_from_cart(cart_id, item_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -78,6 +91,7 @@ def remove_item_from_cart(cart_id, item_id):
     return jsonify({'message': 'Item removed from cart successfully'}), 200
 
 @cart_bp.route('/cart/<int:cart_id>/items', methods=['GET'])
+@jwt_required()
 def get_cart_items(cart_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -88,6 +102,7 @@ def get_cart_items(cart_id):
     return jsonify({'cart_id': cart.cart_id, 'items': items_data}), 200
 
 @cart_bp.route('/cart/<int:cart_id>/items/<int:item_id>', methods=['PATCH'])
+@jwt_required()
 def update_cart_item(cart_id, item_id):
     cart = Cart.query.get(cart_id)
     if not cart:
@@ -103,12 +118,16 @@ def update_cart_item(cart_id, item_id):
     if quantity is None:
         return jsonify({'error': 'Quantity is required'}), 400
 
+    if quantity > item.product.stock:
+        return jsonify({'error': f'Only {item.product.stock} units available'}), 400
+    
     item.quantity = quantity
     db.session.commit()
 
     return jsonify({'message': 'Cart item updated successfully', 'cart_item_id': item.cart_item_id, 'quantity': item.quantity}), 200
 
 @cart_bp.route('/cart/<int:cart_id>/items/<int:item_id>', methods=['GET'])
+@jwt_required()
 def get_cart_item(cart_id, item_id):
     cart = Cart.query.get(cart_id)
     if not cart:

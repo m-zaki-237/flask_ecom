@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.review import Review
+from middlewares.auth import jwt_required, role_required
 
 review_bp = Blueprint('review', __name__)
 
-
 @review_bp.route('/reviews', methods=['POST'])
+@jwt_required()
 def create_review():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -23,6 +24,7 @@ def create_review():
     return jsonify({'message': 'Review created successfully', 'review_id': new_review.review_id}), 201
 
 @review_bp.route('/reviews/<int:review_id>', methods=['GET'])
+@jwt_required()
 def get_review(review_id):
     review = Review.query.get(review_id)
     if not review:
@@ -39,6 +41,7 @@ def get_review(review_id):
     return jsonify(review_data), 200
 
 @review_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
+@role_required("admin")
 def delete_review(review_id):
     review = Review.query.get(review_id)
     if not review:
@@ -66,6 +69,7 @@ def get_reviews_by_product(product_id):
     return jsonify(reviews_data), 200
 
 @review_bp.route('/reviews/update/<int:user_id>', methods=['PATCH'])
+@jwt_required()
 def update_review(user_id):
     data = request.get_json()
     product_id = data.get('product_id')
@@ -89,6 +93,7 @@ def update_review(user_id):
     return jsonify({'message': 'Review updated successfully'}), 200
 
 @review_bp.route('/reviews/user/<int:user_id>', methods=['GET'])
+@jwt_required()
 def get_reviews_by_user(user_id):
     reviews = Review.query.filter_by(user_id=user_id).all()
     if not reviews:
