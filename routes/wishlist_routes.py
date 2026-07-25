@@ -3,6 +3,7 @@ from database import db
 from models.wishlist import Wishlist
 from models.wishlist_item import WishlistItem
 from middlewares.auth import role_required, jwt_required
+from middlewares.audit_log import log_action
 
 wishlist_bp = Blueprint('wishlist', __name__)
     
@@ -30,6 +31,8 @@ def create_wishlist():
         db.session.add(wishlist_item)
 
     db.session.commit()
+
+    log_action("wishlists", new_wishlist.wishlist_id, "CREATE", f"Wishlist {new_wishlist.wishlist_id} created for user {user_id}")
 
     return jsonify({
         'message': 'Wishlist created successfully',
@@ -68,6 +71,8 @@ def delete_wishlist(wishlist_id):
     db.session.delete(wishlist)
     db.session.commit()
 
+    log_action("wishlists", wishlist_id, "DELETE", f"Wishlist {wishlist_id} deleted")
+
     return jsonify({'message': 'Wishlist deleted successfully'}), 200
 
 @wishlist_bp.route('/wishlists/<int:wishlist_id>/items', methods=['POST'])
@@ -87,6 +92,8 @@ def add_item_to_wishlist(wishlist_id):
     db.session.add(new_item)
     db.session.commit()
 
+    log_action("wishlist_items", new_item.wishlist_item_id, "CREATE", f"Product {product_id} added to wishlist {wishlist_id}")
+
     return jsonify({'message': 'Item added to wishlist successfully', 'item_id': new_item.wishlist_item_id}), 201
 
 @wishlist_bp.route('/wishlists/<int:wishlist_id>/items/<int:item_id>', methods=['DELETE'])
@@ -102,5 +109,7 @@ def remove_item_from_wishlist(wishlist_id, item_id):
 
     db.session.delete(item)
     db.session.commit()
+
+    log_action("wishlist_items", item_id, "DELETE", f"Item {item_id} removed from wishlist {wishlist_id}")
 
     return jsonify({'message': 'Item removed from wishlist successfully'}), 200

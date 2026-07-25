@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.category import Category
 from middlewares.auth import role_required, jwt_required
+from middlewares.audit_log import log_action
+
 category_bp = Blueprint("category_routes", __name__)
 
 @category_bp.route("/categories", methods=["GET"])
@@ -41,6 +43,8 @@ def create_category():
     db.session.add(new_category)
     db.session.commit()
 
+    log_action("categories", new_category.category_id, "CREATE", f"Category {new_category.category_name} created")
+
     return jsonify({
         "message": "category created successfully",
         "category_id": new_category.category_id
@@ -58,6 +62,8 @@ def update_category(category_id):
 
     db.session.commit()
 
+    log_action("categories", category_id, "UPDATE", f"Category {category.category_name} updated")
+
     return jsonify({
         "message": "category updated successfully",
         "category_id": category.category_id
@@ -73,6 +79,8 @@ def delete_category(category_id):
     db.session.delete(category)
     db.session.commit()
 
+    log_action("categories", category_id, "DELETE", f"Category {category_id} deleted by admin")
+    
     return jsonify({
         "message": "category deleted successfully",
         "category_id": category.category_id

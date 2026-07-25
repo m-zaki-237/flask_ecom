@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
 from database import db
-from models.order import Order
 from models.payment import Payment
 from middlewares.auth import jwt_required, role_required
+from middlewares.audit_log import log_action
+
 payment_bp = Blueprint('payment', __name__)
 
 @payment_bp.route('/payments', methods=['GET'])
@@ -55,6 +56,8 @@ def create_payment():
     db.session.add(new_payment)
     db.session.commit()
 
+    log_action("payments", new_payment.payment_id, "CREATE", f"Payment {new_payment.payment_id} created for order {order_id}")
+
     return jsonify({"message":"payment created successfully", "payment_id": new_payment.payment_id})
 
 @payment_bp.route('/payments/<int:payment_id>', methods=['DELETE'])
@@ -66,6 +69,8 @@ def delete_payment(payment_id):
 
     db.session.delete(payment)
     db.session.commit()
+
+    log_action("payments", payment_id, "DELETE", f"Payment {payment_id} deleted by admin")
 
     return jsonify({"message": "payment deleted successfully"})
 
@@ -84,5 +89,7 @@ def update_payment(payment_id):
         payment.amount = data["amount"]
 
     db.session.commit()
+
+    log_action("payments", payment_id, "UPDATE", f"Payment {payment_id} status updated to {payment.payment_status}")
 
     return jsonify({"message" : "payment updated successfully", "payment_id":payment.payment_id})

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.support_ticket import SupportTicket
 from middlewares.auth import role_required, jwt_required
+from middlewares.audit_log import log_action
 
 support_ticket_bp = Blueprint('support_ticket', __name__)
 
@@ -54,6 +55,8 @@ def create_support_ticket():
     db.session.add(new_ticket)
     db.session.commit()
 
+    log_action("support_tickets", new_ticket.ticket_id, "CREATE", f"Support ticket {new_ticket.ticket_id} created by user {user_id}")
+
     return jsonify({"message":"ticket generated successfully", "ticket_id":new_ticket.ticket_id})
 
 @support_ticket_bp.route("/support_tickets/<int:ticket_id>", methods=["DELETE"])
@@ -65,6 +68,8 @@ def delete_support_ticket(ticket_id):
 
     db.session.delete(ticket)
     db.session.commit()
+
+    log_action("support_tickets", ticket_id, "DELETE", f"Support ticket {ticket_id} deleted by admin")
 
     return jsonify({'message':'ticket delete successfully'})
 
@@ -82,6 +87,8 @@ def update_support_ticket_status(ticket_id):
         ticket.status = data["status"]
 
     db.session.commit()
+
+    log_action("support_tickets", ticket_id, "UPDATE", f"Support ticket {ticket_id} status updated to {ticket.status}")
 
     return jsonify({
         "message": "ticket updated successfully",

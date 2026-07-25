@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.user import User
-from models.role import Role
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from middlewares.auth import jwt_required, role_required
+from middlewares.audit_log import log_action
+
 user_bp = Blueprint("user_routes", __name__)
 
 
@@ -64,6 +65,9 @@ def register_user():
     db.session.add(new_user)
     db.session.commit()
 
+    log_action("users", new_user.user_id, "CREATE", f"New user {new_user.email} registered")
+
+
     return jsonify({
         "message": "user created successfully",
         "user_id": new_user.user_id 
@@ -83,6 +87,9 @@ def login_user():
             identity=str(user.user_id),
             additional_claims = {"role":user.role.role_name}
         )
+
+        log_action("users", user.user_id, "LOGIN", f"User {user.email} logged in")
+
         return jsonify({
             "message": "login successful",
             "access_token": access_token,
@@ -114,6 +121,8 @@ def update_user(user_id):
 
     db.session.commit()
 
+    log_action("users", user_id, "UPDATE", f"User {user.email} updated their profile")
+
     return jsonify({"message": "user updated successfully"}), 200
 
 @user_bp.route("/user/delete/<int:user_id>", methods=["DELETE"])
@@ -127,4 +136,6 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
 
+    log_action("users", user_id, "DELETE", f"User {user_id} deleted by admin")
+    
     return jsonify({"message": "user deleted successfully"}), 200

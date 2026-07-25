@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.review import Review
 from middlewares.auth import jwt_required, role_required
+from middlewares.audit_log import log_action
 
 review_bp = Blueprint('review', __name__)
 
@@ -20,6 +21,8 @@ def create_review():
     new_review = Review(user_id=user_id, product_id=product_id, rating=rating, review=review_text)
     db.session.add(new_review)
     db.session.commit()
+
+    log_action("reviews", new_review.review_id, "CREATE", f"Review {new_review.review_id} created by user {user_id} for product {product_id}")
 
     return jsonify({'message': 'Review created successfully', 'review_id': new_review.review_id}), 201
 
@@ -50,6 +53,8 @@ def delete_review(review_id):
     db.session.delete(review)
     db.session.commit()
 
+    log_action("reviews", review_id, "DELETE", f"Review {review_id} deleted by admin")
+    
     return jsonify({'message': 'Review deleted successfully'}), 200
 
 @review_bp.route('/reviews/product/<int:product_id>', methods=['GET'])
@@ -89,6 +94,8 @@ def update_review(user_id):
         review.review = review_text
 
     db.session.commit()
+
+    log_action("reviews", review.review_id, "UPDATE", f"Review {review.review_id} updated")
 
     return jsonify({'message': 'Review updated successfully'}), 200
 

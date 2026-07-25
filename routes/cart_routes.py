@@ -4,6 +4,7 @@ from models.cart import Cart
 from models.cart_item import CartItem
 from models.product import Product
 from middlewares.auth import role_required, jwt_required
+from middlewares.audit_log import log_action
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -19,6 +20,8 @@ def create_cart():
     new_cart = Cart(user_id=user_id)
     db.session.add(new_cart)
     db.session.commit()
+
+    log_action("carts", new_cart.cart_id, "CREATE", f"Cart {new_cart.cart_id} created for user {new_cart.user_id}")
 
     return jsonify({'message': 'Cart created successfully', 'cart_id': new_cart.cart_id}), 201
 
@@ -47,6 +50,8 @@ def delete_cart(cart_id):
     db.session.delete(cart)
     db.session.commit()
 
+    log_action("carts", cart_id, "DELETE", f"Cart {cart_id} deleted")
+
     return jsonify({'message': 'Cart deleted successfully'}), 200
 
 @cart_bp.route('/cart/<int:cart_id>/items', methods=['POST'])
@@ -72,6 +77,8 @@ def add_item_to_cart(cart_id):
     db.session.add(new_item)
     db.session.commit()
 
+    log_action("cart_items", new_item.cart_item_id, "CREATE", f"Item {product_id} added to cart {cart_id} with quantity {quantity}")
+
     return jsonify({'message': 'Item added to cart successfully', 'cart_item_id': new_item.cart_item_id}), 201
 
 @cart_bp.route('/cart/<int:cart_id>/items/<int:item_id>', methods=['DELETE'])
@@ -87,6 +94,8 @@ def remove_item_from_cart(cart_id, item_id):
 
     db.session.delete(item)
     db.session.commit()
+
+    log_action("cart_items", item_id, "DELETE", f"Item {item_id} removed from cart {cart_id}")
 
     return jsonify({'message': 'Item removed from cart successfully'}), 200
 
@@ -123,6 +132,8 @@ def update_cart_item(cart_id, item_id):
     
     item.quantity = quantity
     db.session.commit()
+
+    log_action("cart_items", item_id, "UPDATE", f"Cart item {item_id} quantity updated to {quantity}")
 
     return jsonify({'message': 'Cart item updated successfully', 'cart_item_id': item.cart_item_id, 'quantity': item.quantity}), 200
 

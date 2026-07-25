@@ -23,6 +23,7 @@ from models.wishlist import Wishlist
 from models.wishlist_item import WishlistItem
 from models.support_ticket import SupportTicket
 from models.payment import Payment
+from models.audit_log import AuditLog
 
 #Routes
 from routes.user_routes import user_bp
@@ -34,6 +35,7 @@ from routes.review_routes import review_bp
 from routes.wishlist_routes import wishlist_bp
 from routes.support_ticket_routes import support_ticket_bp
 from routes.payment_routes import payment_bp
+from routes.audit_log_routes import audit_log_bp
 
 #Blueprints
 app.register_blueprint(user_bp)
@@ -45,6 +47,7 @@ app.register_blueprint(review_bp)
 app.register_blueprint(wishlist_bp)
 app.register_blueprint(support_ticket_bp)
 app.register_blueprint(payment_bp)
+app.register_blueprint(audit_log_bp)
 
 @app.errorhandler(SQLAlchemyError)
 def handle_db_error(e):
@@ -69,7 +72,6 @@ def home():
     return jsonify({
         "message": "Api running"
     })
-
 
 if __name__ == "__main__":
     app.run(debug=True)

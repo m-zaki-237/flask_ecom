@@ -3,6 +3,7 @@ from database import db
 from models.order import Order
 from models.order_item import OrderItem
 from middlewares.auth import jwt_required, role_required
+from middlewares.audit_log import log_action
 
 order_bp = Blueprint('order', __name__)
 
@@ -18,7 +19,7 @@ def create_order():
 
     new_order = Order(user_id=user_id)
     db.session.add(new_order)
-    db.session.commit()
+    db.session.flush()
 
     for item in items:
         product_id = item.get('product_id')
@@ -30,6 +31,8 @@ def create_order():
         db.session.add(new_order_item)
 
     db.session.commit()
+
+    log_action("orders", new_order.order_id, "CREATE", f"Order {new_order.order_id} created for user {user_id}")
 
     return jsonify({'message': 'Order created successfully', 'order_id': new_order.order_id}), 201
 
@@ -60,6 +63,8 @@ def delete_order(order_id):
     db.session.delete(order)
     db.session.commit()
 
+    log_action("orders", order_id, "DELETE", f"Order {order_id} deleted by admin")
+
     return jsonify({'message': 'Order deleted successfully'}), 200
 
 @order_bp.route('/orders/<int:order_id>/items', methods=['POST'])
@@ -81,6 +86,8 @@ def add_item_to_order(order_id):
     db.session.add(new_item)
     db.session.commit()
 
+    log_action("order_items", new_item.order_item_id, "CREATE", f"Item {product_id} added to order {order_id}")
+
     return jsonify({'message': 'Item added to order successfully', 'order_item_id': new_item.order_item_id}), 201
 
 @order_bp.route('/orders/<int:order_id>/items/<int:item_id>', methods=['DELETE'])
@@ -96,6 +103,8 @@ def remove_item_from_order(order_id, item_id):
 
     db.session.delete(item)
     db.session.commit()
+
+    log_action("order_items", item_id, "DELETE", f"Item {item_id} removed from order {order_id}")
 
     return jsonify({'message': 'Item removed from order successfully'}), 200
 
@@ -114,6 +123,8 @@ def update_order_status(order_id):
 
     order.status = new_status
     db.session.commit()
+
+    log_action("orders", order_id, "UPDATE", f"Order {order_id} status changed to {new_status}")
 
     return jsonify({'message': 'Order status updated successfully', 'new_status': order.status}), 200
 
@@ -166,6 +177,8 @@ def update_order_item(order_id, item_id):
         item.variant = variant
 
     db.session.commit()
+
+    log_action("order_items", item_id, "UPDATE", f"Order item {item_id} updated in order {order_id}")
 
     return jsonify({'message': 'Order item updated successfully', 'order_item_id': item.order_item_id, 'quantity': item.quantity, 'variant': item.variant}), 200
 

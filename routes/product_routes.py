@@ -3,6 +3,7 @@ from database import db
 from models.product import Product
 from models.category import Category
 from middlewares.auth import jwt_required, role_required
+from middlewares.audit_log import log_action
 
 product_bp = Blueprint("product_routes", __name__)
 
@@ -80,6 +81,8 @@ def create_product():
     db.session.add(new_product)
     db.session.commit()
 
+    log_action("products", new_product.product_id, "CREATE", f"Product {new_product.product_name} created")
+
     return jsonify({
         "message": "Product created successfully",
         "product_id": new_product.product_id
@@ -103,6 +106,8 @@ def update_product(product_id):
 
     db.session.commit()
 
+    log_action("products", product_id, "UPDATE", f"Product {product.product_name} updated")
+
     return jsonify({
         "message": "product updated successfully",
         "product_id": product.product_id
@@ -119,6 +124,8 @@ def delete_product(product_id):
     db.session.delete(product)
     db.session.commit()
 
+    log_action("products", product_id, "DELETE", f"Product {product_id} deleted by admin")
+    
     return jsonify({
         "message": "product deleted successfully",
         "product_id": product.product_id
