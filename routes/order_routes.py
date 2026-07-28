@@ -2,15 +2,22 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.order import Order
 from models.order_item import OrderItem
-from middlewares.auth import jwt_required, role_required
+from middlewares.auth import jwt_required, role_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
+from schemas.order_schema import OrderCreateSchema
 
 order_bp = Blueprint('order', __name__)
+order_schema = OrderCreateSchema()
 
 @order_bp.route('/orders', methods=['POST'])
 @jwt_required()
 def create_order():
     data = request.get_json()
+
+    errors = order_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+
     user_id = data.get('user_id')
     items = data.get('items')  # list of items with product_id and quantity
 
@@ -42,6 +49,9 @@ def get_order(order_id):
     order = Order.query.get(order_id)
     if not order:
         return jsonify({'error': 'Order not found'}), 404
+
+    if get_current_user_role() != "admin" and order.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     order_data = {
         'order_id': order.order_id,
@@ -134,6 +144,9 @@ def get_order_items(order_id):
     order = Order.query.get(order_id)
     if not order:
         return jsonify({'error': 'Order not found'}), 404
+
+    if get_current_user_role() != "admin" and order.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     items_data = [{'order_item_id': item.order_item_id, 'product_id': item.product_id, 'quantity': item.quantity, 'variant': item.variant} for item in order.order_items]
 

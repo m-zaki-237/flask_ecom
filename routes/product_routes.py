@@ -4,8 +4,10 @@ from models.product import Product
 from models.category import Category
 from middlewares.auth import jwt_required, role_required
 from middlewares.audit_log import log_action
+from schemas.product_schema import ProductCreateSchema
 
 product_bp = Blueprint("product_routes", __name__)
+product_schema = ProductCreateSchema()
 
 @product_bp.route("/products", methods=["GET"])
 def get_products():
@@ -44,6 +46,10 @@ def get_product(product_id):
 def create_product():
     data = request.get_json()
 
+    errors = product_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+    
     if not data:
         return jsonify({"message": "No data provided"}), 400
 

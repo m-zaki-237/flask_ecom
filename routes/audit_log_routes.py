@@ -9,7 +9,7 @@ audit_log_bp = Blueprint('audit_log', __name__)
 def get_all_audit_logs():
     logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
     result = []
-    for log in log:
+    for log in logs:
         result.append({
             "log_id": log.log_id,
             "user_id": log.user_id,

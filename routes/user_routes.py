@@ -5,9 +5,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from middlewares.auth import jwt_required, role_required
 from middlewares.audit_log import log_action
+from schemas.user_schema import UserRegisterSchema
 
 user_bp = Blueprint("user_routes", __name__)
 
+register_schema = UserRegisterSchema()
 
 @user_bp.route("/users", methods=["GET"])
 @role_required("admin")
@@ -46,6 +48,10 @@ def get_user(user_id):
 def register_user():
     data = request.json
 
+    errors = register_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+    
     hashed_password = generate_password_hash(data["password"])
     existing_user = User.query.filter_by(email=data["email"]).first()
 

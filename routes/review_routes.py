@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.review import Review
-from middlewares.auth import jwt_required, role_required
+from middlewares.auth import jwt_required, role_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
 
 review_bp = Blueprint('review', __name__)
@@ -73,20 +73,20 @@ def get_reviews_by_product(product_id):
 
     return jsonify(reviews_data), 200
 
-@review_bp.route('/reviews/update/<int:user_id>', methods=['PATCH'])
+@review_bp.route('/reviews/update/<int:review_id>', methods=['PATCH'])
 @jwt_required()
-def update_review(user_id):
+def update_review(review_id):
     data = request.get_json()
-    product_id = data.get('product_id')
+
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'error': 'Review not found'}), 404
+
+    if get_current_user_role() != "admin" and review.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
     rating = data.get('rating')
     review_text = data.get('review')
-
-    if not product_id:
-        return jsonify({'error': 'Product ID is required'}), 400
-
-    review = Review.query.filter_by(user_id=user_id, product_id=product_id).first()
-    if not review:
-        return jsonify({'error': 'Review not found for this user and product'}), 404
 
     if rating is not None:
         review.rating = rating
@@ -96,7 +96,6 @@ def update_review(user_id):
     db.session.commit()
 
     log_action("reviews", review.review_id, "UPDATE", f"Review {review.review_id} updated")
-
     return jsonify({'message': 'Review updated successfully'}), 200
 
 @review_bp.route('/reviews/user/<int:user_id>', methods=['GET'])

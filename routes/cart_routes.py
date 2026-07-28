@@ -3,7 +3,7 @@ from database import db
 from models.cart import Cart
 from models.cart_item import CartItem
 from models.product import Product
-from middlewares.auth import role_required, jwt_required
+from middlewares.auth import jwt_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
 
 cart_bp = Blueprint('cart', __name__)
@@ -32,6 +32,9 @@ def get_cart(cart_id):
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
 
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
     cart_data = {
         'cart_id': cart.cart_id,
         'user_id': cart.user_id,
@@ -47,6 +50,9 @@ def delete_cart(cart_id):
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
 
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+    
     db.session.delete(cart)
     db.session.commit()
 
@@ -60,6 +66,9 @@ def add_item_to_cart(cart_id):
     cart = Cart.query.get(cart_id)
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
+
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     data = request.get_json()
     product_id = data.get('product_id')
@@ -88,6 +97,9 @@ def remove_item_from_cart(cart_id, item_id):
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
 
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+    
     item = CartItem.query.get(item_id)
     if not item or item.cart_id != cart_id:
         return jsonify({'error': 'Item not found in this cart'}), 404
@@ -106,6 +118,9 @@ def get_cart_items(cart_id):
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
 
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
     items_data = [{'cart_item_id': item.cart_item_id, 'product_id': item.product_id, 'quantity': item.quantity} for item in cart.cart_items]
 
     return jsonify({'cart_id': cart.cart_id, 'items': items_data}), 200
@@ -116,6 +131,9 @@ def update_cart_item(cart_id, item_id):
     cart = Cart.query.get(cart_id)
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
+
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     item = CartItem.query.get(item_id)
     if not item or item.cart_id != cart_id:
@@ -143,6 +161,9 @@ def get_cart_item(cart_id, item_id):
     cart = Cart.query.get(cart_id)
     if not cart:
         return jsonify({'error': 'Cart not found'}), 404
+
+    if get_current_user_role() != "admin" and cart.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     item = CartItem.query.get(item_id)
     if not item or item.cart_id != cart_id:

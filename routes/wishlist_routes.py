@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.wishlist import Wishlist
 from models.wishlist_item import WishlistItem
-from middlewares.auth import role_required, jwt_required
+from middlewares.auth import jwt_required, get_current_user_role, get_current_user_id
 from middlewares.audit_log import log_action
 
 wishlist_bp = Blueprint('wishlist', __name__)
@@ -47,6 +47,9 @@ def get_wishlist(wishlist_id):
     if not wishlist:
         return jsonify({'error': 'Wishlist not found'}), 404
 
+    if get_current_user_role() != "admin" and wishlist.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
     wishlist_data = {
         'wishlist_id': wishlist.wishlist_id,
         'user_id': wishlist.user_id,
@@ -68,6 +71,9 @@ def delete_wishlist(wishlist_id):
     if not wishlist:
         return jsonify({'error': 'Wishlist not found'}), 404
 
+    if get_current_user_role() != "admin" and wishlist.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
     db.session.delete(wishlist)
     db.session.commit()
 
@@ -81,6 +87,9 @@ def add_item_to_wishlist(wishlist_id):
     wishlist = Wishlist.query.get(wishlist_id)
     if not wishlist:
         return jsonify({'error': 'Wishlist not found'}), 404
+
+    if get_current_user_role() != "admin" and wishlist.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     data = request.get_json()
     product_id = data.get('product_id')
@@ -102,6 +111,9 @@ def remove_item_from_wishlist(wishlist_id, item_id):
     wishlist = Wishlist.query.get(wishlist_id)
     if not wishlist:
         return jsonify({'error': 'Wishlist not found'}), 404
+
+    if get_current_user_role() != "admin" and wishlist.user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
 
     item = WishlistItem.query.get(item_id)
     if not item or item.wishlist_id != wishlist_id:

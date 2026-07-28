@@ -3,8 +3,10 @@ from database import db
 from models.payment import Payment
 from middlewares.auth import jwt_required, role_required
 from middlewares.audit_log import log_action
+from schemas.payment_schema import PaymentCreateSchema
 
 payment_bp = Blueprint('payment', __name__)
+payment_schema = PaymentCreateSchema()
 
 @payment_bp.route('/payments', methods=['GET'])
 @role_required("admin")
@@ -44,11 +46,15 @@ def get_payment_by_id(payment_id):
 @jwt_required()
 def create_payment():
     data = request.get_json()
+
+    errors = payment_schema.validate(data)
+    if errors:
+        return jsonify(errors), 400
+
     order_id = data.get('order_id')
     amount = data.get('amount')
     payment_method = data.get('payment_method')
     payment_status = data.get('payment_status')
-
     if not order_id:
         return jsonify({"error":"order id missing!"}) , 400
 
