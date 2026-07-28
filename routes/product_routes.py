@@ -5,6 +5,7 @@ from models.category import Category
 from middlewares.auth import jwt_required, role_required
 from middlewares.audit_log import log_action
 from schemas.product_schema import ProductCreateSchema
+from utils.cloudinary import upload_image
 
 product_bp = Blueprint("product_routes", __name__)
 product_schema = ProductCreateSchema()
@@ -53,7 +54,15 @@ def get_product(product_id):
 @product_bp.route("/product/create", methods=["POST"])
 @role_required("admin","seller")
 def create_product():
-    data = request.get_json()
+    print("FILES:", request.files)
+    print("FORM:", request.form)
+    file = request.files.get("image_url")
+    if not file:
+        return jsonify({"error": "image is required"}), 400
+
+    image = upload_image(file)
+
+    data = request.form
 
     errors = product_schema.validate(data)
     if errors:
@@ -63,7 +72,6 @@ def create_product():
         return jsonify({"message": "No data provided"}), 400
 
     required_fields = [
-        "image_url",
         "product_name",
         "price",
         "stock",
@@ -74,10 +82,10 @@ def create_product():
         if field not in data:
             return jsonify({"message": f"{field} is required"}), 400
 
-    if data["price"] < 0:
+    if float(data["price"]) < 0:
         return jsonify({"message": "Price cannot be negative"}), 400
 
-    if data["stock"] < 0:
+    if int(data["stock"]) < 0:
         return jsonify({"message": "Stock cannot be negative"}), 400
 
     category = Category.query.get(data["category_id"])
@@ -86,11 +94,11 @@ def create_product():
         return jsonify({"message": "Invalid category"}), 400
 
     new_product = Product(
-        image_url=data["image_url"],
+        image_url= image,
         product_name=data["product_name"],
-        price=data["price"],
-        stock=data["stock"],
-        category_id=data["category_id"]
+        price=float(data["price"]),
+        stock=int(data["stock"]),
+        category_id=int(data["category_id"])
     )
 
     db.session.add(new_product)
@@ -100,7 +108,8 @@ def create_product():
 
     return jsonify({
         "message": "Product created successfully",
-        "product_id": new_product.product_id
+        "product_id": new_product.product_id,
+        "image_url": new_product.image_url
     }), 201
 
 @product_bp.route("/product/update/<int:product_id>", methods=["PATCH"])
