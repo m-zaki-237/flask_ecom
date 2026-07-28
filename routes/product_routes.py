@@ -10,7 +10,7 @@ from utils.cloudinary import upload_image
 product_bp = Blueprint("product_routes", __name__)
 product_schema = ProductCreateSchema()
 
-@product_bp.route("/products", methods=["GET"])
+@product_bp.route("/product", methods=["GET"])
 def get_products():
     page = request.args.get('page',1,type=int)
     limit = request.args.get('limit',10,type=int)
@@ -54,8 +54,6 @@ def get_product(product_id):
 @product_bp.route("/product/create", methods=["POST"])
 @role_required("admin","seller")
 def create_product():
-    print("FILES:", request.files)
-    print("FORM:", request.form)
     file = request.files.get("image_url")
     if not file:
         return jsonify({"error": "image is required"}), 400

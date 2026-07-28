@@ -7,8 +7,8 @@ class Order(db.Model):
     status = db.Column(db.String(50), nullable=False, default='Pending')
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
 
-    user = db.relationship('User', backref=db.backref('orders', lazy=True))
     order_items = db.relationship('OrderItem', cascade='all, delete-orphan', backref='order')
+    payments = db.relationship('Payment', cascade='all, delete-orphan', lazy=True)
 
 
     def __repr__(self):

@@ -9,7 +9,7 @@ app.config.from_object(Config)
 jwt = JWTManager(app)
 db.init_app(app)
 
-CORS(app)
+CORS(app, supports_credentials=True, origins="http://localhost:5173")
 
 #Models
 from models.role import Role
@@ -68,6 +68,13 @@ def handle_403(e):
 def handle_exception(e):
     db.session.rollback()
     return jsonify({"error": "internal server error", "details": str(e)}), 500
+@app.errorhandler(Exception)
+def handle_exception(e):
+    db.session.rollback()
+    import traceback
+    print(traceback.format_exc())  # add this
+    return jsonify({"error": "internal server error", "details": str(e)}), 500
+
 
 @app.route("/")
 def home():

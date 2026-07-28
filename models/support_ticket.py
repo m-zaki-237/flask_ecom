@@ -9,7 +9,5 @@ class SupportTicket(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
     status = db.Column(db.String(50), nullable = False, default = "Pending")
 
-    user = db.relationship('User', backref = 'support_tickets', lazy = True)
-
     def __repr__(self):
         return f"<SupportTicket {self.ticket_id}>"

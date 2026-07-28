@@ -16,5 +16,12 @@ class User(db.Model):
         backref="users"
     )
 
+    orders = db.relationship("Order", cascade="all, delete-orphan", lazy=True)
+    carts = db.relationship("Cart", cascade="all, delete-orphan", lazy=True)
+    wishlists = db.relationship("Wishlist", cascade="all, delete-orphan", lazy=True)
+    reviews = db.relationship("Review", cascade="all, delete-orphan", lazy=True)
+    support_tickets = db.relationship("SupportTicket", cascade="all, delete-orphan", lazy=True)
+    audit_logs = db.relationship("AuditLog", cascade="all, delete-orphan", lazy=True)
+
     def __repr__(self):
         return f"<User {self.email}>"

@@ -10,11 +10,5 @@ class AuditLog(db.Model):
     description = db.Column(db.Text, nullable = False)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
-    user = db.relationship(
-        "User",
-        backref = "audit_logs",
-        lazy = True
-    )
-
     def __repr__(self):
         return f"<AuditLog {self.log_id}>"

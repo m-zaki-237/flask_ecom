@@ -8,7 +8,6 @@ class Review(db.Model):
     rating = db.Column(db.Integer, nullable=True)
     review = db.Column(db.Text)
 
-    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     product = db.relationship('Product', backref=db.backref('reviews', lazy=True))
 
     def __repr__(self):

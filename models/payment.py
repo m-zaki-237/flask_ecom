@@ -8,7 +8,5 @@ class Payment(db.Model):
     payment_method = db.Column(db.String(50), nullable=False)
     payment_status = db.Column(db.String(50), nullable=False, default='pending')
 
-    order = db.relationship('Order', backref=db.backref('payments', lazy=True))
-
     def __repr__(self):
         return f'<Payment {self.id} - Order {self.order_id} - Amount {self.amount}>'

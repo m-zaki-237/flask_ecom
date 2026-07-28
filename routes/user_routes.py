@@ -47,7 +47,6 @@ def get_user(user_id):
 @user_bp.route("/user/register", methods=["POST"])
 def register_user():
     data = request.json
-
     errors = register_schema.validate(data)
     if errors:
         return jsonify(errors), 400
