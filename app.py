@@ -3,11 +3,13 @@ from config import Config
 from database import db
 from flask_jwt_extended import JWTManager
 from sqlalchemy.exc import SQLAlchemyError
-
+from flask_cors import CORS
 app = Flask(__name__)
 app.config.from_object(Config)
 jwt = JWTManager(app)
 db.init_app(app)
+
+CORS(app)
 
 #Models
 from models.role import Role

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.product import Product
 from models.category import Category
-from middlewares.auth import jwt_required, role_required
+from middlewares.auth import role_required
 from middlewares.audit_log import log_action
 from schemas.product_schema import ProductCreateSchema
 from utils.cloudinary import upload_image
