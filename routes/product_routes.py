@@ -11,19 +11,28 @@ product_schema = ProductCreateSchema()
 
 @product_bp.route("/products", methods=["GET"])
 def get_products():
-    products = Product.query.all()
+    page = request.args.get('page',1,type=int)
+    limit = request.args.get('limit',10,type=int)
+
+    paginated = Product.query.paginate(page=page, per_page=limit, error_out=False)
+
     result = []
-    print(products)
-    for product in products:
+    for product in paginated.items:
         result.append({
             "product_id": product.product_id,
             "image_url": product.image_url,
             "product_name": product.product_name,
             "price": product.price,
             "stock": product.stock,
-            "category_id" : product.category_id
+            "category_id": product.category_id
         })
-    return jsonify(result)
+
+    return jsonify({
+        "products": result,
+        "total" : paginated.total,
+        "pages" : paginated.pages,
+        "current_page" : paginated.page
+    }), 200
 
 @product_bp.route("/product/<int:product_id>", methods=["GET"])
 def get_product(product_id):

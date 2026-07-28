@@ -155,19 +155,27 @@ def get_order_items(order_id):
 @order_bp.route('/orders', methods=['GET'])
 @role_required("admin")
 def get_all_orders():
-    orders = Order.query.all()
-    orders_data = []
-    for order in orders:
-        order_info = {
+    page = request.args.get('page',1,type=int)
+    limit = request.args.get('limit',10,type=int)
+
+    paginated = Order.query.paginate(page=page, per_page=limit, error_out=False)
+    result = []
+
+    for order in paginated.items:
+        result.append({
             'order_id': order.order_id,
             'user_id': order.user_id,
+            'items': [{'product_id': item.product_id, 'quantity': item.quantity, 'variant': item.variant} for item in order.order_items],
             'status': order.status,
-            'created_at': order.created_at,
-            'items': [{'product_id': item.product_id, 'quantity': item.quantity, 'variant': item.variant} for item in order.order_items]
-        }
-        orders_data.append(order_info)
+            'created_at': order.created_at
+        })
 
-    return jsonify(orders_data), 200
+    return jsonify({
+        'orders' : result,
+        'total' : paginated.total,
+        'pages' : paginated.pages,
+        'current_page': paginated.page
+    })
 
 @order_bp.route('/orders/<int:order_id>/items/<int:item_id>', methods=['PATCH'])
 @role_required("admin")
