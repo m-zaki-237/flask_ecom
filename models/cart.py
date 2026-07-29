@@ -5,7 +5,5 @@ class Cart(db.Model):
     cart_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
 
-    user = db.relationship('User', backref=db.backref('cart', lazy=True))
-
     def __repr__(self):
         return f''

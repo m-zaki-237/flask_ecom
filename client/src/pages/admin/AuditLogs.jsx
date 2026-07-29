@@ -11,18 +11,17 @@ const AuditLogs = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [userFilter, setUserFilter] = useState("");
 
-  const fetchLogs = async (currentPage = 1) => {
+const fetchLogs = async (currentPage = 1) => {
     try {
-      const res = await api.get("/audit_logs");
-      setLogs(res.data);
-      // Calculate total pages (10 items per page)
-      setTotalPages(Math.ceil(res.data.length / 10));
+        const res = await api.get(`/audit_logs?page=${currentPage}&limit=10`)
+        setLogs(res.data.audit_logs)
+        setTotalPages(res.data.pages)
     } catch (error) {
-      console.error(error);
+        console.error(error)
     } finally {
-      setLoading(false);
+        setLoading(false)
     }
-  };
+}
 
   useEffect(() => {
     fetchLogs(page);
@@ -85,11 +84,6 @@ const AuditLogs = () => {
     return colors[action] || "bg-gray-100 text-gray-800";
   };
 
-  // Pagination logic
-  const indexOfLastLog = page * 10;
-  const indexOfFirstLog = indexOfLastLog - 10;
-  const currentLogs = logs.slice(indexOfFirstLog, indexOfLastLog);
-
   if (loading)
     return (
       <AdminLayout>
@@ -147,7 +141,7 @@ const AuditLogs = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {currentLogs.map((log) => (
+            {logs.map((log) => (
               <tr key={log.log_id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">#{log.log_id}</td>
                 <td className="px-6 py-4">{log.user_id}</td>

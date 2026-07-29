@@ -11,11 +11,20 @@ payment_schema = PaymentCreateSchema()
 @payment_bp.route('/payments', methods=['GET'])
 @role_required("admin")
 def get_payment():
-    payments = Payment.query.all()
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+
+    paginated = Payment.query.paginate(
+        page=page,
+        per_page=limit,
+        error_out=False
+    )
+
+    if not paginated.items:
+        return jsonify({"error": "No payments found"}), 404
+
     result = []
-    if not payments:
-        return jsonify({"error":"no payments found"}) , 404
-    for payment in payments:
+    for payment in paginated.items:
         result.append({
             "payment_id": payment.payment_id,
             "order_id": payment.order_id,
@@ -23,7 +32,13 @@ def get_payment():
             "payment_method": payment.payment_method,
             "payment_status": payment.payment_status
         })
-    return jsonify(result)
+
+    return jsonify({
+        "payments": result,
+        'total' : paginated.total,
+        'pages' : paginated.pages,
+        'current_page': paginated.page
+})
 
 @payment_bp.route('/payments/<int:payment_id>', methods=['GET'])
 @jwt_required()

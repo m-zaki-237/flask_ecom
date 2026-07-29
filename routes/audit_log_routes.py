@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from models.audit_log import AuditLog
 from middlewares.auth import role_required
 
@@ -7,9 +7,11 @@ audit_log_bp = Blueprint('audit_log', __name__)
 @audit_log_bp.route('/audit_logs', methods=['GET'])
 @role_required("admin")
 def get_all_audit_logs():
-    logs = AuditLog.query.order_by(AuditLog.created_at.desc()).all()
+    page = request.args.get('page',1,type=int)
+    limit = request.args.get('limit',10,type=int)
+    paginated = AuditLog.query.paginate(page=page,per_page=limit,error_out=False)
     result = []
-    for log in logs:
+    for log in paginated.items:
         result.append({
             "log_id": log.log_id,
             "user_id": log.user_id,
@@ -19,7 +21,12 @@ def get_all_audit_logs():
             "description": log.description,
             "created_at": log.created_at
         })
-    return jsonify(result), 200
+    return jsonify({
+        'audit_logs' : result,
+        'total' : paginated.total,
+        'pages' : paginated.pages,
+        'current_page': paginated.page
+    }), 200
 
 @audit_log_bp.route('/audit_logs/<int:log_id>', methods=['GET'])
 @role_required("admin")

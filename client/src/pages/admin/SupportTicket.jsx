@@ -10,17 +10,17 @@ const SupportTickets = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
-  const fetchTickets = async (currentPage = 1) => {
+const fetchTickets = async (currentPage = 1) => {
     try {
-      const res = await api.get("/support_tickets");
-      setTickets(res.data);
-      setTotalPages(Math.ceil(res.data.length / 10));
+        const res = await api.get(`/support_tickets?page=${currentPage}&limit=10`)
+        setTickets(res.data.support_tickets)
+        setTotalPages(res.data.pages)
     } catch (error) {
-      console.error(error);
+        console.error(error)
     } finally {
-      setLoading(false);
+        setLoading(false)
     }
-  };
+}
 
   useEffect(() => {
     fetchTickets(page);
@@ -92,11 +92,6 @@ const SupportTickets = () => {
     return labels[status?.toLowerCase()] || status || "Unknown";
   };
 
-  // Pagination logic
-  const indexOfLastTicket = page * 10;
-  const indexOfFirstTicket = indexOfLastTicket - 10;
-  const currentTickets = tickets.slice(indexOfFirstTicket, indexOfLastTicket);
-
   if (loading)
     return (
       <AdminLayout>
@@ -126,7 +121,7 @@ const SupportTickets = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {currentTickets.map((ticket) => (
+            {tickets.map((ticket) => (
               <tr key={ticket.ticket_id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">{ticket.ticket_id}</td>
                 <td className="px-6 py-4">{ticket.user_id}</td>

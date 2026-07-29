@@ -18,17 +18,17 @@ const Payments = () => {
     payment_status: "",
   });
 
-  const fetchPayments = async (currentPage = 1) => {
+const fetchPayments = async (currentPage = 1) => {
     try {
-      const res = await api.get("/payments");
-      setPayments(res.data);
-      setTotalPages(Math.ceil(res.data.length / 10));
+        const res = await api.get(`/payments?page=${currentPage}&limit=10`)
+        setPayments(res.data.payments)
+        setTotalPages(res.data.pages)
     } catch (error) {
-      console.error(error);
+        console.error(error)
     } finally {
-      setLoading(false);
+        setLoading(false)
     }
-  };
+}
 
   useEffect(() => {
     fetchPayments(page);
@@ -106,11 +106,6 @@ const Payments = () => {
     return labels[method] || method || "Unknown";
   };
 
-  // Pagination logic
-  const indexOfLastPayment = page * 10;
-  const indexOfFirstPayment = indexOfLastPayment - 10;
-  const currentPayments = payments.slice(indexOfFirstPayment, indexOfLastPayment);
-
   if (loading)
     return (
       <AdminLayout>
@@ -143,7 +138,7 @@ const Payments = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {currentPayments.map((payment) => (
+            {payments.map((payment) => (
               <tr key={payment.payment_id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">{payment.payment_id}</td>
                 <td className="px-6 py-4">{payment.order_id}</td>

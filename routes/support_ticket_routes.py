@@ -9,19 +9,27 @@ support_ticket_bp = Blueprint('support_ticket', __name__)
 @support_ticket_bp.route("/support_tickets", methods=["GET"])
 @role_required("admin")
 def get_all_support_tickets():
-    support_ticket = SupportTicket.query.all()
-    support_tickets = []
-    for ticket in support_ticket:
-        ticket_info = {
+    page = request.args.get('page',1,type=int)
+    limit = request.args.get('limit',10,type=int)
+    paginated = SupportTicket.query.paginate(page=page,per_page=limit, error_out=False)
+    if not paginated.items:
+        return jsonify({"error":"no payments found!"}), 404
+    result = []
+    for ticket in paginated.items:
+        result.append({
             "ticket_id": ticket.ticket_id,
-            "user_id": ticket.user.user_id,
+            "user_id": ticket.user_id,
             "subject": ticket.subject,
             "body": ticket.body,
             "created_at" : ticket.created_at, 
             "status": ticket.status
-        }
-        support_tickets.append(ticket_info)
-    return jsonify(support_tickets), 200
+        })
+    return jsonify({
+        'support_tickets' : result,
+        'total' : paginated.total,
+        'pages' : paginated.pages,
+        'current_page': paginated.page
+    }), 200
 
 @support_ticket_bp.route("/support_tickets/<int:ticket_id>", methods=["GET"])
 @jwt_required()
@@ -32,7 +40,7 @@ def get_support_tickets(ticket_id):
 
     ticket_info = {
         "ticket_id": ticket.ticket_id,
-        "user_id": ticket.user.user_id,
+        "user_id": ticket.user_id,
         "subject": ticket.subject,
         "body": ticket.body,
         "created_at" : ticket.created_at, 
