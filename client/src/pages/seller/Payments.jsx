@@ -1,320 +1,179 @@
 import { useState, useEffect } from "react";
 import SellerLayout from "../../components/SellerLayout";
 import api from "../../api/axios";
-
+import { CreditCard, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 const SellerPayments = () => {
-
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPayments = async (currentPage = 1) => {
-
+    setLoading(true);
     try {
-
-      const res = await api.get(
-        `/seller/payments?page=${currentPage}&limit=10`
-      );
-
-
-      setPayments(res.data.payments || []);
-
-      setTotalPages(res.data.pages || 1);
-
-
+      const res = await api.get(`/seller/payments?page=${currentPage}&limit=10`);
+      setPayments(res.data?.payments || []);
+      setTotalPages(res.data?.pages || 1);
     } catch (err) {
-
       console.error(err);
-
+      toast({
+        title: "Error fetching payouts",
+        description: "Could not load payment records",
+        variant: "destructive",
+      });
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
-
   useEffect(() => {
-
     fetchPayments(page);
-
   }, [page]);
 
-
-
-
-
-  if (loading) {
-
-    return (
-
-      <SellerLayout>
-
-        <p className="text-gray-500">
-          Loading...
-        </p>
-
-      </SellerLayout>
-
-    );
-
-  }
-
-
-
-
-
-  return (
-
-    <SellerLayout>
-
-
-      <h1 className="text-2xl font-bold mb-6">
-        Payments
-      </h1>
-
-
-
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-
-
-        <table className="w-full text-sm">
-
-
-          <thead className="bg-gray-50 text-gray-600 uppercase text-xs">
-
-
-            <tr>
-
-
-              <th className="px-6 py-3 text-left">
-                Payment ID
-              </th>
-
-
-
-              <th className="px-6 py-3 text-left">
-                Order ID
-              </th>
-
-
-
-              <th className="px-6 py-3 text-left">
-                Amount
-              </th>
-
-
-
-              <th className="px-6 py-3 text-left">
-                Payment Method
-              </th>
-
-
-
-              <th className="px-6 py-3 text-left">
-                Status
-              </th>
-
-
-
-            </tr>
-
-
-          </thead>
-
-
-
-
-
-          <tbody className="divide-y divide-gray-100">
-
-
-            {
-              payments.length === 0 ? (
-
-                <tr>
-
-                  <td
-                    colSpan="5"
-                    className="text-center py-6 text-gray-500"
-                  >
-
-                    No payments found
-
-                  </td>
-
-                </tr>
-
-
-              ) : (
-
-
-                payments.map((payment) => (
-
-
-                  <tr
-                    key={payment.payment_id}
-                    className="hover:bg-gray-50"
-                  >
-
-
-
-                    <td className="px-6 py-4">
-
-                      {payment.payment_id}
-
-                    </td>
-
-
-
-
-                    <td className="px-6 py-4">
-
-                      {payment.order_id}
-
-                    </td>
-
-
-
-
-
-                    <td className="px-6 py-4">
-
-                      ${payment.amount}
-
-                    </td>
-
-
-
-
-
-                    <td className="px-6 py-4">
-
-                      {payment.payment_method}
-
-                    </td>
-
-
-
-
-
-                    <td className="px-6 py-4">
-
-
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs ${
-                          payment.payment_status === "completed"
-                            ? "bg-green-100 text-green-600"
-                            : payment.payment_status === "pending"
-                            ? "bg-yellow-100 text-yellow-600"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-
-                        {payment.payment_status}
-
-                      </span>
-
-
-                    </td>
-
-
-
-
-
-                  </tr>
-
-
-                ))
-
-              )
-
-            }
-
-
-
-          </tbody>
-
-
-        </table>
-
-
-      </div>
-
-
-
-
-
-      <div className="flex justify-center items-center gap-3 mt-6">
-
-
-
-        <button
-
-          onClick={() =>
-            setPage((p) => Math.max(1, p - 1))
-          }
-
-          disabled={page === 1}
-
-          className="px-4 py-2 bg-white border rounded text-sm disabled:opacity-50"
-
-        >
-
-          Previous
-
-        </button>
-
-
-
-
-
-        <span className="px-4 py-2 text-sm">
-
-          Page {page} of {totalPages}
-
-        </span>
-
-
-
-
-
-        <button
-
-          onClick={() =>
-            setPage((p) => Math.min(totalPages, p + 1))
-          }
-
-          disabled={page === totalPages}
-
-          className="px-4 py-2 bg-white border rounded text-sm disabled:opacity-50"
-
-        >
-
-          Next
-
-        </button>
-
-
-
-
-      </div>
-
-
-
-    </SellerLayout>
-
+  const getStatusBadge = (status) => {
+    const s = status?.toLowerCase();
+    switch (s) {
+      case "completed": return <Badge variant="success">Completed</Badge>;
+      case "pending": return <Badge variant="warning">Pending</Badge>;
+      case "failed": return <Badge variant="destructive">Failed</Badge>;
+      default: return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const filteredPayments = payments.filter((p) =>
+    p.payment_id?.toString().includes(searchQuery) ||
+    p.order_id?.toString().includes(searchQuery) ||
+    p.payment_method?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-};
+  return (
+    <SellerLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Earnings & Payouts</h2>
+          <p className="text-xs text-[#64748B] mt-0.5">Transaction settlements and completed payouts for store sales</p>
+        </div>
 
+        {/* Filter & Search Bar */}
+        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search payouts by Payment ID, Order ID, or Method..."
+              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
+            />
+          </div>
+          <span className="text-xs font-semibold text-[#64748B] pr-2 hidden sm:inline">
+            Showing {filteredPayments.length} payouts
+          </span>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+            </div>
+          ) : filteredPayments.length === 0 ? (
+            <div className="text-center py-16 px-4">
+              <CreditCard className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
+              <h3 className="font-semibold text-[#0F172A] text-sm">No Payout Records</h3>
+              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
+                Payout settlements will appear here when orders are completed.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Payment ID</TableHead>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Settled Amount</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPayments.map((payment) => (
+                  <TableRow key={payment.payment_id}>
+                    <TableCell className="font-mono text-xs font-bold text-[#0F172A]">
+                      #{payment.payment_id}
+                    </TableCell>
+
+                    <TableCell className="font-mono text-xs text-[#475569]">
+                      Order #{payment.order_id}
+                    </TableCell>
+
+                    <TableCell className="font-extrabold text-[#15803D]">
+                      ${parseFloat(payment.amount).toFixed(2)}
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono text-xs capitalize">
+                        {payment.payment_method?.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>{getStatusBadge(payment.payment_status)}</TableCell>
+
+                    <TableCell className="text-xs text-[#64748B]">
+                      {payment.created_at || "N/A"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
+              <span className="text-xs text-[#64748B] font-medium">
+                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 text-xs"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="h-8 text-xs"
+                >
+                  Next
+                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </SellerLayout>
+  );
+};
 
 export default SellerPayments;

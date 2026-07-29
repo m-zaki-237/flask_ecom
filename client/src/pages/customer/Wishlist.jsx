@@ -1,217 +1,179 @@
-import { useEffect, useState } from "react"
-import CustomerLayout from "../../components/CustomerLayout"
-import api from "../../api/axios"
-import { Link } from "react-router-dom"
-import { useAuth } from "../../context/AuthContext"
+import { useEffect, useState } from "react";
+import CustomerLayout from "../../components/CustomerLayout";
+import api from "../../api/axios";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { Heart, Trash2, Eye, ShoppingBag, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 export default function Wishlist() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-    const [products, setProducts] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [message, setMessage] = useState("")
-    const [error, setError] = useState(null)
-    const { user } = useAuth()
+  const fetchWishlist = async () => {
+    setLoading(true);
+    try {
+      if (!user || !user.user_id) {
+        setLoading(false);
+        return;
+      }
 
-    const fetchWishlist = async () => {
-        setLoading(true)
-        setError(null)
-        
-        try {
-            if (!user || !user.user_id) {
-                setError("Please login to view your wishlist")
-                setLoading(false)
-                return
-            }
+      const res = await api.get(`/wishlist/my`);
+      let productList = [];
 
-            console.log("Fetching wishlist for user:", user.user_id)
-            
-            // Use the correct endpoint: /wishlist/my (not /wishlists/my)
-            const res = await api.get(`/wishlist/my`)
-            
-            console.log("Wishlist API response:", res.data)
-            
-            // Handle the response structure
-            let productList = []
-            
-            if (res.data && res.data.products) {
-                productList = res.data.products
-            } else if (Array.isArray(res.data)) {
-                productList = res.data
-            }
-            
-            console.log("Extracted products:", productList)
-            setProducts(productList)
-            
-            if (productList.length === 0) {
-                setMessage("Your wishlist is empty")
-            }
-            
-        } catch (err) {
-            console.error("Error fetching wishlist:", err)
-            console.error("Error response:", err.response)
-            
-            setError(
-                err.response?.data?.error ||
-                err.response?.data?.message ||
-                "Failed to load wishlist"
-            )
-            setProducts([])
-        } finally {
-            setLoading(false)
-        }
+      if (res.data && res.data.products) {
+        productList = res.data.products;
+      } else if (Array.isArray(res.data)) {
+        productList = res.data;
+      }
+
+      setProducts(productList);
+    } catch (err) {
+      console.error("Error fetching wishlist:", err);
+      setProducts([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    useEffect(() => {
-        fetchWishlist()
-    }, [user])
+  useEffect(() => {
+    fetchWishlist();
+  }, [user]);
 
-    const handleRemoveFromWishlist = async (productId) => {
-        try {
-            // First, get the wishlist
-            const wishlistRes = await api.get(`/wishlist/my`)
-            const wishlistId = wishlistRes.data.wishlist_id
-            
-            if (!wishlistId) {
-                setMessage("Wishlist not found")
-                return
-            }
-            
-            // Find the item ID for this product
-            const item = wishlistRes.data.products.find(
-                p => p.product_id === productId
-            )
-            
-            if (!item) {
-                setMessage("Product not found in wishlist")
-                return
-            }
-            
-            // Get the wishlist item ID - you might need to fetch this differently
-            // Since your backend uses item_id, we need to get it
-            // Option 1: If your API returns item_id in the product object
-            const itemId = item.wishlist_item_id || item.item_id
-            
-            // If you have the item_id, use it
-            if (itemId) {
-                await api.delete(`/wishlists/${wishlistId}/items/${itemId}`)
-            } else {
-                // Option 2: If you don't have item_id, you might need to fetch all items
-                // or use a different endpoint
-                setMessage("Cannot remove item: item ID not found")
-                return
-            }
-            
-            setMessage("Removed from wishlist!")
-            setTimeout(() => setMessage(""), 3000)
-            
-            // Refresh wishlist
-            await fetchWishlist()
-            
-        } catch (err) {
-            console.error("Error removing from wishlist:", err)
-            setMessage(
-                err.response?.data?.error ||
-                "Failed to remove from wishlist"
-            )
-            setTimeout(() => setMessage(""), 3000)
-        }
+  const handleRemoveFromWishlist = async (productId) => {
+    try {
+      const wishlistRes = await api.get(`/wishlist/my`);
+      const wishlistId = wishlistRes.data.wishlist_id;
+
+      if (!wishlistId) {
+        toast({ title: "Wishlist Not Found", variant: "warning" });
+        return;
+      }
+
+      const item = wishlistRes.data.products?.find((p) => p.product_id === productId);
+      if (!item) return;
+
+      const itemId = item.wishlist_item_id || item.item_id;
+      if (itemId) {
+        await api.delete(`/wishlists/${wishlistId}/items/${itemId}`);
+      }
+
+      toast({
+        title: "Item Removed",
+        description: "Product removed from your saved wishlist.",
+        variant: "success",
+      });
+
+      fetchWishlist();
+    } catch (err) {
+      console.error("Error removing from wishlist:", err);
+      toast({
+        title: "Removal Failed",
+        description: "Could not remove item from wishlist",
+        variant: "destructive",
+      });
     }
+  };
 
-    if (loading) {
-        return (
-            <CustomerLayout>
-                <div className="flex justify-center items-center h-64">
-                    <p className="text-gray-500">Loading wishlist...</p>
-                </div>
-            </CustomerLayout>
-        )
-    }
-
+  if (loading) {
     return (
-        <CustomerLayout>
+      <CustomerLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-40 rounded-lg" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </CustomerLayout>
+    );
+  }
 
-            <h1 className="text-2xl font-bold mb-6">
-                My Wishlist
-            </h1>
+  return (
+    <CustomerLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Saved Wishlist</h1>
+          <p className="text-xs text-slate-500 mt-1">Your saved products for future purchase</p>
+        </div>
 
-            {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                    <p className="font-medium">Error:</p>
-                    <p>{error}</p>
-                    <button 
-                        onClick={fetchWishlist}
-                        className="mt-2 text-sm text-red-600 hover:underline"
+        {products.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-2xs max-w-md mx-auto">
+            <div className="h-16 w-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+              <Heart className="h-8 w-8" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Your Wishlist is Empty</h2>
+            <p className="text-xs text-slate-500 mt-1 mb-6">Explore products and save your favorite items here.</p>
+            <Button onClick={() => navigate("/home")} variant="primary" className="gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              <span>Browse Products</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card
+                key={product.product_id}
+                className="group overflow-hidden border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-300 rounded-2xl flex flex-col"
+              >
+                {/* Product Image */}
+                <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+                  {product.image_url ? (
+                    <img
+                      src={product.image_url}
+                      alt={product.product_name}
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-slate-400">
+                      <ImageIcon className="h-10 w-10" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Info */}
+                <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-slate-900 text-base leading-snug line-clamp-2">
+                      {product.product_name}
+                    </h3>
+                    <p className="text-xl font-extrabold text-blue-600 tracking-tight mt-1">
+                      ${parseFloat(product.price).toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => navigate(`/product/${product.product_id}`)}
+                      className="flex-1 gap-1.5 text-xs h-9"
                     >
-                        Try again
-                    </button>
-                </div>
-            )}
+                      <Eye className="h-3.5 w-3.5" />
+                      <span>View</span>
+                    </Button>
 
-            {message && !error && (
-                <p className={`text-sm mb-4 ${message.includes("Failed") ? "text-red-600" : "text-green-600"}`}>
-                    {message}
-                </p>
-            )}
-
-            {products.length === 0 && !error ? (
-                <div className="bg-white shadow rounded p-8 text-center">
-                    <p className="text-gray-500 mb-4">Your wishlist is empty</p>
-                    <Link 
-                        to="/home" 
-                        className="text-blue-600 hover:underline"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveFromWishlist(product.product_id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-9 px-3"
                     >
-                        Browse Products
-                    </Link>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                    {products.map(product => (
-
-                        <div
-                            key={product.product_id}
-                            className="bg-white shadow rounded p-4 relative"
-                        >
-                            <img
-                                src={product.image_url}
-                                alt={product.product_name}
-                                className="h-48 w-full object-cover rounded"
-                                onError={(e) => {
-                                    e.target.src = "https://via.placeholder.com/300x200?text=No+Image"
-                                }}
-                            />
-
-                            <h2 className="font-bold mt-3">
-                                {product.product_name}
-                            </h2>
-
-                            <p className="text-blue-600 font-bold">
-                                ${product.price}
-                            </p>
-
-                            <div className="flex items-center justify-between mt-2">
-                                <Link
-                                    to={`/product/${product.product_id}`}
-                                    className="text-blue-600 text-sm hover:underline"
-                                >
-                                    View Product
-                                </Link>
-
-                                <button
-                                    onClick={() => handleRemoveFromWishlist(product.product_id)}
-                                    className="text-red-500 text-sm hover:underline"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-
-                        </div>
-
-                    ))}
-
-                </div>
-            )}
-
-        </CustomerLayout>
-    )
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </CustomerLayout>
+  );
 }

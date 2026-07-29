@@ -1,214 +1,271 @@
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import api from "../api/axios"
-import { useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import api from "../api/axios";
+import { useState } from "react";
+import {
+  ShoppingBag,
+  Home,
+  ShoppingCart,
+  PackageCheck,
+  Heart,
+  LifeBuoy,
+  LogOut,
+  Menu,
+  X,
+  Send,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function CustomerLayout({ children }) {
-    const [showTicketModal, setShowTicketModal] = useState(false)
-    const [ticket, setTicket] = useState({ subject: "", body: "" })
-    const [ticketMessage, setTicketMessage] = useState("")
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticket, setTicket] = useState({ subject: "", body: "" });
+  const [submittingTicket, setSubmittingTicket] = useState(false);
+  const [ticketMessage, setTicketMessage] = useState("");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-    const { logout, user } = useAuth()
-    const navigate = useNavigate()
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const handleSubmitTicket = async () => {
-        try {
-            await api.post("/support_tickets", {
-                user_id: user.user_id,
-                subject: ticket.subject,
-                body: ticket.body
-            })
-
-            setTicketMessage("Ticket submitted successfully!")
-            setTicket({ subject: "", body: "" })
-
-            setTimeout(() => {
-                setShowTicketModal(false)
-                setTicketMessage("")
-            }, 1500)
-
-        } catch (err) {
-            setTicketMessage("Failed to submit ticket")
-        }
+  const handleSubmitTicket = async (e) => {
+    if (e) e.preventDefault();
+    if (!ticket.subject.trim() || !ticket.body.trim()) {
+      setTicketMessage("Please fill out all fields.");
+      return;
     }
 
-    const handleLogout = () => {
-        logout()
-        navigate("/login")
+    setSubmittingTicket(true);
+    setTicketMessage("");
+
+    try {
+      await api.post("/support_tickets", {
+        user_id: user?.user_id,
+        subject: ticket.subject,
+        body: ticket.body,
+      });
+
+      setTicketMessage("Ticket submitted successfully!");
+      setTicket({ subject: "", body: "" });
+
+      setTimeout(() => {
+        setShowTicketModal(false);
+        setTicketMessage("");
+      }, 1500);
+    } catch (err) {
+      setTicketMessage(err.response?.data?.error || "Failed to submit ticket");
+    } finally {
+      setSubmittingTicket(false);
     }
+  };
 
-    return (
-        <div className="min-h-screen bg-gray-100">
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
-            <nav className="bg-white shadow px-8 py-4 flex justify-between items-center">
+  const navLinks = [
+    { name: "Home", path: "/home", icon: Home },
+    { name: "Cart", path: "/cart", icon: ShoppingCart },
+    { name: "Orders", path: "/orders", icon: PackageCheck },
+    { name: "Wishlist", path: "/wishlist", icon: Heart },
+    { name: "Support", path: "/support_tickets", icon: LifeBuoy },
+  ];
 
-    <Link 
-        to="/home" 
-        className="text-xl font-bold text-blue-600"
-    >
-        Shop
-    </Link>
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+      {/* Top Navbar */}
+      <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/home" className="flex items-center gap-2 font-bold text-lg text-blue-600">
+            <div className="h-8 w-8 rounded-md bg-blue-600 flex items-center justify-center text-white font-extrabold text-sm">
+              <ShoppingBag className="h-4 w-4" />
+            </div>
+            <span className="text-slate-900 font-extrabold tracking-tight">Shop</span>
+          </Link>
 
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.path;
 
-    <div className="flex gap-6 items-center">
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-slate-100 text-blue-600 font-semibold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", isActive ? "text-blue-600" : "text-slate-400")} />
+                  <span>{link.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
-        <Link 
-            to="/home" 
-            className="text-sm hover:text-blue-600"
-        >
-            Home
-        </Link>
-
-
-        <Link 
-            to="/cart" 
-            className="text-sm hover:text-blue-600"
-        >
-            Cart
-        </Link>
-
-
-        <Link 
-            to="/orders" 
-            className="text-sm hover:text-blue-600"
-        >
-            Orders
-        </Link>
-
-
-        <Link 
-            to="/wishlist" 
-            className="text-sm hover:text-blue-600"
-        >
-            Wishlist
-        </Link>
-
-
-        <Link 
-            to="/support_tickets" 
-            className="text-sm hover:text-blue-600"
-        >
-            Support
-        </Link>
-
-
-        <span className="text-sm text-gray-500">
-            Hi, {user?.first_name}
-        </span>
-
-
-        <button
-            onClick={handleLogout}
-            className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-        >
-            Logout
-        </button>
-
-    </div>
-
-</nav>
-
-
-            <main className="max-w-6xl mx-auto py-8 px-4">
-                {children}
-            </main>
-
-
-            {/* Floating Support Button */}
-            <button
-                onClick={() => setShowTicketModal(true)}
-                className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 text-sm z-40"
+          {/* User Controls & Profile */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTicketModal(true)}
+              className="hidden sm:inline-flex text-xs h-8"
             >
-                💬 Support
-            </button>
+              Contact Support
+            </Button>
 
+            <span className="text-xs font-semibold text-slate-700 hidden sm:inline">
+              Hi, {user?.first_name || "User"}
+            </span>
 
-            {/* Support Ticket Modal */}
-            {showTicketModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Button
+              onClick={handleLogout}
+              variant="destructive"
+              size="sm"
+              className="h-8 text-xs font-semibold"
+            >
+              <LogOut className="h-3.5 w-3.5 mr-1" />
+              Logout
+            </Button>
 
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-
-                        <h2 className="text-lg font-bold mb-4">
-                            Contact Support
-                        </h2>
-
-
-                        {ticketMessage ? (
-                            <p className="text-green-600 text-center py-4">
-                                {ticketMessage}
-                            </p>
-                        ) : (
-
-                            <div className="space-y-4">
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">
-                                        Subject
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        value={ticket.subject}
-                                        onChange={(e) =>
-                                            setTicket({
-                                                ...ticket,
-                                                subject: e.target.value
-                                            })
-                                        }
-                                        className="w-full border rounded px-3 py-2 text-sm"
-                                        placeholder="What's the issue?"
-                                    />
-                                </div>
-
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">
-                                        Description
-                                    </label>
-
-                                    <textarea
-                                        value={ticket.body}
-                                        onChange={(e) =>
-                                            setTicket({
-                                                ...ticket,
-                                                body: e.target.value
-                                            })
-                                        }
-                                        className="w-full border rounded px-3 py-2 text-sm"
-                                        rows={4}
-                                        placeholder="Describe your issue..."
-                                    />
-                                </div>
-
-
-                                <div className="flex gap-3">
-
-                                    <button
-                                        onClick={() => setShowTicketModal(false)}
-                                        className="flex-1 border py-2 rounded text-sm"
-                                    >
-                                        Cancel
-                                    </button>
-
-
-                                    <button
-                                        onClick={handleSubmitTicket}
-                                        className="flex-1 bg-blue-600 text-white py-2 rounded text-sm"
-                                    >
-                                        Submit
-                                    </button>
-
-                                </div>
-
-                            </div>
-                        )}
-
-                    </div>
-
-                </div>
-            )}
-
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-slate-700 h-8 w-8"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            >
+              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
-    )
+
+        {/* Mobile Navigation */}
+        {mobileNavOpen && (
+          <div className="md:hidden border-t border-slate-200 bg-white p-3 space-y-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium",
+                    isActive ? "bg-blue-50 text-blue-600 font-semibold" : "text-slate-700 hover:bg-slate-50"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{link.name}</span>
+                </Link>
+              );
+            })}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setMobileNavOpen(false);
+                setShowTicketModal(true);
+              }}
+              className="w-full text-xs mt-2"
+            >
+              Contact Support
+            </Button>
+          </div>
+        )}
+      </header>
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {children}
+      </main>
+
+      {/* Support Ticket Modal Dialog */}
+      <Dialog open={showTicketModal} onClose={() => setShowTicketModal(false)}>
+        <DialogHeader>
+          <DialogTitle>Contact Support</DialogTitle>
+          <DialogDescription>
+            Submit your question or issue to our support team.
+          </DialogDescription>
+        </DialogHeader>
+
+        {ticketMessage ? (
+          <div className={cn(
+            "p-3 rounded-md text-center text-xs font-semibold my-2",
+            ticketMessage.includes("successfully") ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"
+          )}>
+            {ticketMessage}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmitTicket} className="space-y-4 my-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Subject
+              </label>
+              <Input
+                type="text"
+                value={ticket.subject}
+                onChange={(e) => setTicket({ ...ticket, subject: e.target.value })}
+                placeholder="What's the issue?"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Description
+              </label>
+              <textarea
+                value={ticket.body}
+                onChange={(e) => setTicket({ ...ticket, body: e.target.value })}
+                rows={4}
+                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-2xs placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                placeholder="Describe your issue..."
+                required
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowTicketModal(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={submittingTicket}
+                className="flex-1 gap-2"
+              >
+                {submittingTicket ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    <span>Submit</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
+      </Dialog>
+    </div>
+  );
 }

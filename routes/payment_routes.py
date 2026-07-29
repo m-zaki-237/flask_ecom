@@ -33,7 +33,9 @@ def get_payment():
             "order_id": payment.order_id,
             "amount": payment.amount,
             "payment_method": payment.payment_method,
-            "payment_status": payment.payment_status
+            "payment_status": payment.payment_status,
+            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
         })
 
     return jsonify({
@@ -55,7 +57,9 @@ def get_payment_by_id(payment_id):
         "order_id": payment.order_id,
         "amount": payment.amount,
         "payment_method": payment.payment_method,
-        "payment_status": payment.payment_status
+        "payment_status": payment.payment_status,
+        "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
     }
 
     return jsonify(payment_info)
@@ -151,7 +155,10 @@ def get_seller_payments():
             "order_id": payment.order_id,
             "amount": payment.amount,
             "payment_method": payment.payment_method,
-            "payment_status": payment.payment_status
+            "payment_status": payment.payment_status,
+            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+
+
         })
 
     return jsonify({

@@ -1,4 +1,5 @@
 from database import db
+from datetime import datetime
 class Payment(db.Model):
     __tablename__ = 'payments'
 
@@ -7,6 +8,7 @@ class Payment(db.Model):
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)
     payment_status = db.Column(db.String(50), nullable=False, default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def __repr__(self):
-        return f'<Payment {self.id} - Order {self.order_id} - Amount {self.amount}>'
+        return f'<Payment {self.payment_id} - Order {self.order_id} - Amount {self.amount}>'
