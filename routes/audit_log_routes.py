@@ -9,7 +9,7 @@ audit_log_bp = Blueprint('audit_log', __name__)
 def get_all_audit_logs():
     page = request.args.get('page',1,type=int)
     limit = request.args.get('limit',10,type=int)
-    paginated = AuditLog.query.paginate(page=page,per_page=limit,error_out=False)
+    paginated = AuditLog.query.order_by(AuditLog.created_at.desc()).paginate(page=page, per_page=limit, error_out=False)
     result = []
     for log in paginated.items:
         result.append({

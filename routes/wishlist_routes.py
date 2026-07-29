@@ -125,3 +125,33 @@ def remove_item_from_wishlist(wishlist_id, item_id):
     log_action("wishlist_items", item_id, "DELETE", f"Item {item_id} removed from wishlist {wishlist_id}")
 
     return jsonify({'message': 'Item removed from wishlist successfully'}), 200
+
+@wishlist_bp.route('/wishlist/my', methods=['GET'])
+@jwt_required()
+def get_my_wishlist():
+
+    user_id = get_current_user_id()
+
+    wishlist = Wishlist.query.filter_by(user_id=user_id).first()
+
+    if not wishlist:
+        return jsonify({
+            "wishlist_id": None,
+            "products": []
+        }), 200
+
+
+    wishlist_data = {
+        "wishlist_id": wishlist.wishlist_id,
+        "products": [
+            {
+                "product_id": item.product_id,
+                "product_name": item.product.product_name,
+                "price": item.product.price,
+                "image_url": item.product.image_url
+            }
+            for item in wishlist.items
+        ]
+    }
+
+    return jsonify(wishlist_data), 200

@@ -8,7 +8,12 @@ import Users from "./pages/admin/Users"
 import AuditLogs from "./pages/admin/AuditLogs"
 import SupportTickets from "./pages/admin/SupportTicket"
 import Payments from "./pages/admin/Payments"
-
+import Home from "./pages/customer/Home"
+import ProductDetail from "./pages/customer/ProductDetails"
+import Cart from "./pages/customer/Cart"
+import { CustomerOrders } from "./pages/customer/Orders"
+import Wishlist from "./pages/customer/Wishlist"
+import { Tickets } from "./pages/customer/Ticket"
 const App = () => {
   return (
     <BrowserRouter>
@@ -23,6 +28,12 @@ const App = () => {
       <Route path="/admin/users" element={<Users/>}/>
       <Route path="/admin/audit_logs" element={<AuditLogs/>}/>
       <Route path="/admin/support_tickets" element={<SupportTickets/>}/>
+      <Route path="/home" element={<Home/>}/>
+      <Route path="/product/:product_id" element={<ProductDetail/>}/>
+      <Route path="/cart" element={<Cart/>}/>
+      <Route path="/orders" element={<CustomerOrders/>}/>
+      <Route path="/wishlist" element={<Wishlist/>}/>
+      <Route path="/support_tickets" element={<Tickets/>}/>
     </Routes>
     </BrowserRouter>
   )

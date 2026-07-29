@@ -17,6 +17,11 @@ def create_cart():
     if not user_id:
         return jsonify({'error': 'User ID is required'}), 400
 
+    # return existing cart if one already exists
+    existing_cart = Cart.query.filter_by(user_id=user_id).first()
+    if existing_cart:
+        return jsonify({'message': 'Cart already exists', 'cart_id': existing_cart.cart_id}), 200
+
     new_cart = Cart(user_id=user_id)
     db.session.add(new_cart)
     db.session.commit()
@@ -38,7 +43,13 @@ def get_cart(cart_id):
     cart_data = {
         'cart_id': cart.cart_id,
         'user_id': cart.user_id,
-        'items': [{'product_id': item.product_id, 'quantity': item.quantity} for item in cart.cart_items]
+        'items': [{
+            'cart_item_id': item.cart_item_id,
+            'product_id': item.product_id,
+            'product_name': item.product.product_name,
+            'price': float(item.product.price),
+            'quantity': item.quantity
+        } for item in cart.cart_items]
     }
 
     return jsonify(cart_data), 200

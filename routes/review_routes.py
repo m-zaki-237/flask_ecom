@@ -59,17 +59,25 @@ def delete_review(review_id):
 
 @review_bp.route('/reviews/product/<int:product_id>', methods=['GET'])
 def get_reviews_by_product(product_id):
-    reviews = Review.query.filter_by(product_id=product_id).all()
-    if not reviews:
-        return jsonify({'error': 'No reviews found for this product'}), 404
 
-    reviews_data = [{
-        'review_id': review.review_id,
-        'user_id': review.user_id,
-        'product_id': review.product_id,
-        'rating': review.rating,
-        'review': review.review
-    } for review in reviews]
+    reviews = Review.query.filter_by(
+        product_id=product_id
+    ).all()
+    reviews_data = []
+    for review in reviews:
+        reviews_data.append({
+            "review_id": review.review_id,
+            "user_id": review.user_id,
+            "user_name": (
+                f"{review.user.first_name} {review.user.last_name}"
+                if review.user
+                else "Unknown User"
+            ),
+            "product_id": review.product_id,
+            "rating": review.rating,
+            "review": review.review
+        })
+
 
     return jsonify(reviews_data), 200
 

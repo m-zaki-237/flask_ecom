@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.support_ticket import SupportTicket
-from middlewares.auth import role_required, jwt_required
+from middlewares.auth import role_required, jwt_required, get_current_user_id
 from middlewares.audit_log import log_action
 
 support_ticket_bp = Blueprint('support_ticket', __name__)
@@ -102,3 +102,30 @@ def update_support_ticket_status(ticket_id):
         "message": "ticket updated successfully",
         "ticket_id": ticket.ticket_id
     }), 200
+
+@support_ticket_bp.route("/my-support-tickets", methods=["GET"])
+@jwt_required()
+def get_my_support_tickets():
+
+    user_id = get_current_user_id()
+
+    tickets = SupportTicket.query.filter_by(
+        user_id=user_id
+    ).order_by(
+        SupportTicket.created_at.desc()
+    ).all()
+
+
+    result = []
+
+    for ticket in tickets:
+        result.append({
+            "ticket_id": ticket.ticket_id,
+            "subject": ticket.subject,
+            "body": ticket.body,
+            "created_at": ticket.created_at,
+            "status": ticket.status
+        })
+
+
+    return jsonify(result), 200

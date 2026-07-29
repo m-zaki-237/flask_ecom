@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models.order import Order
+from models.product import Product
 from models.order_item import OrderItem
 from middlewares.auth import jwt_required, role_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
@@ -19,7 +20,7 @@ def create_order():
         return jsonify(errors), 400
 
     user_id = data.get('user_id')
-    items = data.get('items')  # list of items with product_id and quantity
+    items = data.get('items')
 
     if not user_id or not items:
         return jsonify({'error': 'User ID and items are required'}), 400
@@ -32,8 +33,18 @@ def create_order():
         product_id = item.get('product_id')
         quantity = item.get('quantity')
         variant = item.get('variant')
+
         if not product_id or not quantity:
             return jsonify({'error': 'Product ID and quantity are required for each item'}), 400
+
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'error': f'Product {product_id} not found'}), 404
+        if quantity > product.stock:
+            return jsonify({'error': f'Only {product.stock} units available for {product.product_name}'}), 400
+
+        product.stock -= quantity
+
         new_order_item = OrderItem(order_id=new_order.order_id, product_id=product_id, quantity=quantity, variant=variant)
         db.session.add(new_order_item)
 
@@ -42,7 +53,6 @@ def create_order():
     log_action("orders", new_order.order_id, "CREATE", f"Order {new_order.order_id} created for user {user_id}")
 
     return jsonify({'message': 'Order created successfully', 'order_id': new_order.order_id}), 201
-
 @order_bp.route('/orders/<int:order_id>', methods=['GET'])
 @jwt_required()
 def get_order(order_id):
@@ -203,3 +213,19 @@ def update_order_item(order_id, item_id):
 
     return jsonify({'message': 'Order item updated successfully', 'order_item_id': item.order_item_id, 'quantity': item.quantity, 'variant': item.variant}), 200
 
+@order_bp.route('/users/<int:user_id>/orders', methods=['GET'])
+@jwt_required()
+def get_user_orders(user_id):
+    if get_current_user_role() != "admin" and user_id != get_current_user_id():
+        return jsonify({"error": "Access forbidden"}), 403
+
+    orders = Order.query.filter_by(user_id=user_id).all()
+    result = []
+    for order in orders:
+        result.append({
+            "order_id": order.order_id,
+            "status": order.status,
+            "created_at": order.created_at,
+            "items": [{"product_id": item.product_id, "quantity": item.quantity} for item in order.order_items]
+        })
+    return jsonify(result), 200
