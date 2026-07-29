@@ -4,9 +4,11 @@ from models.order import Order
 from models.payment import Payment
 from models.order_item import OrderItem
 from models.product import Product
+from models.user import User
 from middlewares.auth import jwt_required, role_required, get_current_user_id
 from middlewares.audit_log import log_action
 from schemas.payment_schema import PaymentCreateSchema
+from sqlalchemy.orm import joinedload
 
 payment_bp = Blueprint('payment', __name__)
 payment_schema = PaymentCreateSchema()
@@ -17,25 +19,49 @@ def get_payment():
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
 
-    paginated = Payment.query.paginate(
+    query = Payment.query.options(
+        joinedload(Payment.order).joinedload(Order.user),
+        joinedload(Payment.order).joinedload(Order.order_items).joinedload(OrderItem.product)
+    ).order_by(Payment.payment_id.desc())
+
+    paginated = query.paginate(
         page=page,
         per_page=limit,
         error_out=False
     )
 
     if not paginated.items:
-        return jsonify({"error": "No payments found"}), 404
+        return jsonify({"payments": [], "total": 0, "pages": 1, "current_page": 1}), 200
 
     result = []
     for payment in paginated.items:
+        order = payment.order
+        user = order.user if order else None
+
+        products_list = []
+        if order and order.order_items:
+            for item in order.order_items:
+                prod = item.product
+                products_list.append({
+                    "product_id": item.product_id,
+                    "product_name": prod.product_name if prod else f"Product #{item.product_id}",
+                    "product_image": prod.image_url if prod else None,
+                    "quantity": item.quantity,
+                    "unit_price": float(prod.price) if (prod and prod.price is not None) else 0.0,
+                    "total_price": round(float(prod.price * item.quantity), 2) if (prod and prod.price is not None) else 0.0
+                })
+
         result.append({
             "payment_id": payment.payment_id,
             "order_id": payment.order_id,
-            "amount": payment.amount,
+            "customer_name": f"{user.first_name} {user.last_name}" if user else "Customer",
+            "customer_email": user.email if user else "N/A",
+            "amount": float(payment.amount) if payment.amount is not None else 0.0,
             "payment_method": payment.payment_method,
             "payment_status": payment.payment_status,
-            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
-
+            "order_status": order.status if order else "N/A",
+            "products": products_list,
+            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S") if payment.created_at else None
         })
 
     return jsonify({
@@ -43,26 +69,49 @@ def get_payment():
         'total' : paginated.total,
         'pages' : paginated.pages,
         'current_page': paginated.page
-})
+    }), 200
 
 @payment_bp.route('/payments/<int:payment_id>', methods=['GET'])
 @jwt_required()
 def get_payment_by_id(payment_id):
-    payment = Payment.query.get(payment_id)
+    payment = Payment.query.options(
+        joinedload(Payment.order).joinedload(Order.user),
+        joinedload(Payment.order).joinedload(Order.order_items).joinedload(OrderItem.product)
+    ).filter_by(payment_id=payment_id).first()
+
     if not payment:
-        return jsonify({"error":"no payment found"}) , 404
+        return jsonify({"error":"no payment found"}), 404
+
+    order = payment.order
+    user = order.user if order else None
+
+    products_list = []
+    if order and order.order_items:
+        for item in order.order_items:
+            prod = item.product
+            products_list.append({
+                "product_id": item.product_id,
+                "product_name": prod.product_name if prod else f"Product #{item.product_id}",
+                "product_image": prod.image_url if prod else None,
+                "quantity": item.quantity,
+                "unit_price": float(prod.price) if (prod and prod.price is not None) else 0.0,
+                "total_price": round(float(prod.price * item.quantity), 2) if (prod and prod.price is not None) else 0.0
+            })
 
     payment_info = {
         "payment_id": payment.payment_id,
         "order_id": payment.order_id,
-        "amount": payment.amount,
+        "customer_name": f"{user.first_name} {user.last_name}" if user else "Customer",
+        "customer_email": user.email if user else "N/A",
+        "amount": float(payment.amount) if payment.amount is not None else 0.0,
         "payment_method": payment.payment_method,
         "payment_status": payment.payment_status,
-        "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
-
+        "order_status": order.status if order else "N/A",
+        "products": products_list,
+        "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S") if payment.created_at else None
     }
 
-    return jsonify(payment_info)
+    return jsonify(payment_info), 200
 
 @payment_bp.route('/payments/create', methods=['POST'])
 @jwt_required()
@@ -130,35 +179,44 @@ def get_seller_payments():
     limit = request.args.get("limit", 10, type=int)
     
     seller_id = get_current_user_id()
-    paginated = (
-        db.session.query(Payment)
+    query = (
+        db.session.query(Payment, Order, User, Product)
         .join(Order, Payment.order_id == Order.order_id)
+        .join(User, Order.user_id == User.user_id)
         .join(OrderItem, Order.order_id == OrderItem.order_id)
         .join(Product, OrderItem.product_id == Product.product_id)
         .filter(Product.seller_id == seller_id)
-        .paginate(
-            page=page,
-            per_page=limit,
-            error_out=False
-        )
+        .order_by(Payment.payment_id.desc())
+    )
+
+    paginated = query.paginate(
+        page=page,
+        per_page=limit,
+        error_out=False
     )
 
     if not paginated.items:
         return jsonify({
-            "error": "No payments found"
-        }), 404
+            "payments": [],
+            "total": 0,
+            "pages": 1,
+            "current_page": 1
+        }), 200
 
     result = []
-    for payment in paginated.items:
+    for payment, order, user, product in paginated.items:
         result.append({
             "payment_id": payment.payment_id,
             "order_id": payment.order_id,
-            "amount": payment.amount,
+            "user_id": user.user_id,
+            "customer_name": f"{user.first_name} {user.last_name}" if user else "Customer",
+            "customer_email": user.email if user else "N/A",
+            "product_name": product.product_name if product else "N/A",
+            "product_image": product.image_url if product else None,
+            "amount": float(payment.amount) if payment.amount is not None else 0.0,
             "payment_method": payment.payment_method,
             "payment_status": payment.payment_status,
-            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S")
-
-
+            "created_at": payment.created_at.strftime("%Y-%m-%d %H:%M:%S") if payment.created_at else None
         })
 
     return jsonify({

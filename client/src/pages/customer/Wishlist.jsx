@@ -45,21 +45,18 @@ export default function Wishlist() {
     fetchWishlist();
   }, [user]);
 
-  const handleRemoveFromWishlist = async (productId) => {
+  const handleRemoveFromWishlist = async (product) => {
+    const productId = product.product_id;
+    const itemId = product.wishlist_item_id || product.item_id;
+
     try {
+      // Optimistic state update without page reload
+      setProducts((prev) => prev.filter((p) => p.product_id !== productId));
+
       const wishlistRes = await api.get(`/wishlist/my`);
       const wishlistId = wishlistRes.data.wishlist_id;
 
-      if (!wishlistId) {
-        toast({ title: "Wishlist Not Found", variant: "warning" });
-        return;
-      }
-
-      const item = wishlistRes.data.products?.find((p) => p.product_id === productId);
-      if (!item) return;
-
-      const itemId = item.wishlist_item_id || item.item_id;
-      if (itemId) {
+      if (wishlistId && itemId) {
         await api.delete(`/wishlists/${wishlistId}/items/${itemId}`);
       }
 
@@ -68,8 +65,6 @@ export default function Wishlist() {
         description: "Product removed from your saved wishlist.",
         variant: "success",
       });
-
-      fetchWishlist();
     } catch (err) {
       console.error("Error removing from wishlist:", err);
       toast({
@@ -77,6 +72,7 @@ export default function Wishlist() {
         description: "Could not remove item from wishlist",
         variant: "destructive",
       });
+      fetchWishlist();
     }
   };
 
@@ -116,11 +112,11 @@ export default function Wishlist() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <Card
                 key={product.product_id}
-                className="group overflow-hidden border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-300 rounded-2xl flex flex-col"
+                className="group h-full flex flex-col justify-between overflow-hidden border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-300 rounded-2xl"
               >
                 {/* Product Image */}
                 <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
@@ -128,6 +124,7 @@ export default function Wishlist() {
                     <img
                       src={product.image_url}
                       alt={product.product_name}
+                      loading="lazy"
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
@@ -138,17 +135,22 @@ export default function Wishlist() {
                 </div>
 
                 {/* Product Info */}
-                <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-slate-900 text-base leading-snug line-clamp-2">
+                <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-1.5">
+                    <h3 className="font-semibold text-slate-900 text-base leading-snug line-clamp-1">
                       {product.product_name}
                     </h3>
-                    <p className="text-xl font-extrabold text-blue-600 tracking-tight mt-1">
+                    {product.description && (
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-normal">
+                        {product.description}
+                      </p>
+                    )}
+                    <p className="text-xl font-extrabold text-blue-600 tracking-tight pt-1">
                       ${parseFloat(product.price).toFixed(2)}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100 mt-auto">
                     <Button
                       variant="primary"
                       size="sm"
@@ -162,7 +164,7 @@ export default function Wishlist() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleRemoveFromWishlist(product.product_id)}
+                      onClick={() => handleRemoveFromWishlist(product)}
                       className="text-red-500 hover:text-red-700 hover:bg-red-50 h-9 px-3"
                     >
                       <Trash2 className="h-4 w-4" />

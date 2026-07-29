@@ -10,5 +10,7 @@ class Payment(db.Model):
     payment_status = db.Column(db.String(50), nullable=False, default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    order = db.relationship('Order', overlaps="payments")
+
     def __repr__(self):
         return f'<Payment {self.payment_id} - Order {self.order_id} - Amount {self.amount}>'

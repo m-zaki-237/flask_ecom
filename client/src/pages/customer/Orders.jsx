@@ -84,33 +84,77 @@ export const CustomerOrders = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">My Orders</h1>
-          <p className="text-xs text-slate-500 mt-1">Track order status, items purchased, and order history</p>
+          <p className="text-xs text-slate-500 mt-1">Track order status, items purchased, and payment details</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {orders.map((order) => (
             <Card key={order.order_id} className="overflow-hidden border border-slate-200/80 shadow-xs">
-              <CardHeader className="bg-slate-50/80 border-b border-slate-100 p-4 sm:p-6 flex flex-row items-center justify-between">
+              {/* Order Header */}
+              <CardHeader className="bg-slate-50/80 border-b border-slate-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base font-extrabold">Order #{order.order_id}</CardTitle>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <CardTitle className="text-base font-extrabold text-slate-900">
+                      Order #{order.order_id}
+                    </CardTitle>
                     {getStatusBadge(order.status)}
+                    <Badge variant={order.payment_status === "completed" ? "success" : "warning"} className="capitalize">
+                      Payment: {order.payment_status || "pending"}
+                    </Badge>
                   </div>
                   <p className="text-xs text-slate-500 font-medium mt-1">
-                    Placed on {new Date(order.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                    Placed on {order.created_at ? new Date(order.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "Recent"}
                   </p>
                 </div>
+
+                {order.total_amount && (
+                  <div className="sm:text-right">
+                    <span className="text-xs text-slate-500 font-medium">Order Total</span>
+                    <p className="text-lg font-extrabold text-blue-600">${parseFloat(order.total_amount).toFixed(2)}</p>
+                  </div>
+                )}
               </CardHeader>
 
-              <CardContent className="p-4 sm:p-6 space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Ordered Items</p>
-                <div className="space-y-2 divide-y divide-slate-100">
-                  {order.items?.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center text-sm pt-2 first:pt-0">
-                      <span className="font-semibold text-slate-800">Product #{item.product_id}</span>
-                      <Badge variant="outline" className="font-mono text-xs">x{item.quantity}</Badge>
-                    </div>
-                  ))}
+              {/* Order Items List */}
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Purchased Items</p>
+                <div className="space-y-3 divide-y divide-slate-100">
+                  {order.items?.map((item, index) => {
+                    const img = item.product_image || item.image_url;
+                    const name = item.product_name || `Product #${item.product_id}`;
+                    const unitPrice = parseFloat(item.unit_price || item.price || 0);
+                    const itemTotal = parseFloat(item.total_price || (unitPrice * item.quantity));
+
+                    return (
+                      <div key={index} className="flex items-center justify-between gap-4 pt-3 first:pt-0">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="h-12 w-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                            {img ? (
+                              <img src={img} alt={name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-slate-400">
+                                <ShoppingBag className="h-5 w-5" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-slate-900 text-sm truncate">{name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Quantity: <span className="font-bold text-slate-700">{item.quantity}</span>
+                              {unitPrice > 0 && ` × $${unitPrice.toFixed(2)}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="font-bold text-slate-900 text-sm">
+                            ${itemTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

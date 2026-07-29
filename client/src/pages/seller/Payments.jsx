@@ -51,6 +51,9 @@ const SellerPayments = () => {
   const filteredPayments = payments.filter((p) =>
     p.payment_id?.toString().includes(searchQuery) ||
     p.order_id?.toString().includes(searchQuery) ||
+    p.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.customer_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.payment_method?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -60,7 +63,7 @@ const SellerPayments = () => {
         {/* Header */}
         <div>
           <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Earnings & Payouts</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Transaction settlements and completed payouts for store sales</p>
+          <p className="text-xs text-[#64748B] mt-0.5">Transaction settlements and customer payouts for store sales</p>
         </div>
 
         {/* Filter & Search Bar */}
@@ -71,7 +74,7 @@ const SellerPayments = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search payouts by Payment ID, Order ID, or Method..."
+              placeholder="Search payouts by Payment ID, Order ID, Customer, Product, or Method..."
               className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
             />
           </div>
@@ -102,6 +105,8 @@ const SellerPayments = () => {
                 <TableRow>
                   <TableHead>Payment ID</TableHead>
                   <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>Settled Amount</TableHead>
                   <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
@@ -119,6 +124,21 @@ const SellerPayments = () => {
                       Order #{payment.order_id}
                     </TableCell>
 
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-[#0F172A]">
+                          {payment.customer_name || "Customer"}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {payment.customer_email || "N/A"}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="font-semibold text-[#0F172A] text-xs max-w-[160px] truncate">
+                      {payment.product_name || "N/A"}
+                    </TableCell>
+
                     <TableCell className="font-extrabold text-[#15803D]">
                       ${parseFloat(payment.amount).toFixed(2)}
                     </TableCell>
@@ -132,7 +152,7 @@ const SellerPayments = () => {
                     <TableCell>{getStatusBadge(payment.payment_status)}</TableCell>
 
                     <TableCell className="text-xs text-[#64748B]">
-                      {payment.created_at || "N/A"}
+                      {payment.created_at ? new Date(payment.created_at).toLocaleDateString() : "N/A"}
                     </TableCell>
                   </TableRow>
                 ))}

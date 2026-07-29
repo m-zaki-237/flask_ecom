@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { Plus, Search, Trash2, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, Package, AlertCircle, MoreVertical } from "lucide-react";
+import { Plus, Search, Trash2, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, Package, AlertCircle, MoreVertical, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -20,8 +20,10 @@ const Products = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [editProduct, setEditProduct] = useState(null);
   const [form, setForm] = useState({
     product_name: "",
+    description: "",
     price: "",
     stock: "",
     category_id: "",
@@ -95,6 +97,7 @@ const handleDelete = async () => {
       const formData = new FormData();
       formData.append("image_url", image);
       formData.append("product_name", form.product_name);
+      formData.append("description", form.description);
       formData.append("price", form.price);
       formData.append("stock", form.stock);
       formData.append("category_id", form.category_id);
@@ -112,7 +115,7 @@ const handleDelete = async () => {
       });
 
       setShowModal(false);
-      setForm({ product_name: "", price: "", stock: "", category_id: "" });
+      setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
       setImage(null);
       setImagePreview(null);
       fetchProducts(page);
@@ -121,6 +124,56 @@ const handleDelete = async () => {
       toast({
         title: "Creation Failed",
         description: err.response?.data?.message || "Failed to create product",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (image) {
+        const formData = new FormData();
+        formData.append("image_url", image);
+        formData.append("product_name", form.product_name);
+        formData.append("description", form.description);
+        formData.append("price", form.price);
+        formData.append("stock", form.stock);
+        formData.append("category_id", form.category_id);
+
+        await api.patch(`/product/update/${editProduct.product_id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.patch(`/product/update/${editProduct.product_id}`, {
+          product_name: form.product_name,
+          description: form.description,
+          price: form.price,
+          stock: form.stock,
+          category_id: form.category_id,
+        });
+      }
+
+      toast({
+        title: "Product Updated",
+        description: `${form.product_name} updated successfully`,
+        variant: "success",
+      });
+
+      setShowModal(false);
+      setEditProduct(null);
+      setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
+      setImage(null);
+      setImagePreview(null);
+      fetchProducts(page);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Update Failed",
+        description: error.response?.data?.message || "Failed to update product",
         variant: "destructive",
       });
     } finally {
@@ -257,6 +310,24 @@ const handleDelete = async () => {
                           </Button>
                         }
                       >
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditProduct(product);
+                            setForm({
+                              product_name: product.product_name,
+                              description: product.description || "",
+                              price: product.price,
+                              stock: product.stock,
+                              category_id: product.category_id,
+                            });
+                            setImagePreview(product.image_url);
+                            setShowModal(true);
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5 mr-2" />
+                          Edit Product
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem destructive onClick={() => setDeleteId(product.product_id)}>
                           <Trash2 className="h-3.5 w-3.5 mr-2" />
                           Delete Product
@@ -302,14 +373,25 @@ const handleDelete = async () => {
         </div>
       </div>
 
-      {/* Add Product Modal */}
-      <Dialog open={showModal} onClose={() => setShowModal(false)}>
+      {/* Add / Edit Product Modal */}
+      <Dialog
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditProduct(null);
+          setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
+          setImage(null);
+          setImagePreview(null);
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription>Enter product details to create a catalog entry.</DialogDescription>
+          <DialogTitle>{editProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+          <DialogDescription>
+            {editProduct ? "Update catalog product details." : "Enter product details to create a catalog entry."}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 my-2">
+        <form onSubmit={editProduct ? handleUpdate : handleSubmit} className="space-y-4 my-2">
           <div>
             <label className="block text-xs font-semibold text-[#0F172A] mb-1">
               Product Name
@@ -320,6 +402,19 @@ const handleDelete = async () => {
               onChange={(e) => setForm({ ...form, product_name: e.target.value })}
               placeholder="e.g. Wireless Mouse"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
+              Description
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              rows={3}
+              className="flex w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-xs shadow-2xs placeholder:text-[#94A3B8] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              placeholder="Brief description of product features..."
             />
           </div>
 
@@ -367,13 +462,13 @@ const handleDelete = async () => {
 
           <div>
             <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-              Product Image
+              Product Image {editProduct && "(Leave blank to keep existing)"}
             </label>
             <Input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              required
+              required={!editProduct}
             />
             {imagePreview && (
               <div className="mt-2 relative h-28 w-full rounded-md overflow-hidden border border-[#E2E8F0]">

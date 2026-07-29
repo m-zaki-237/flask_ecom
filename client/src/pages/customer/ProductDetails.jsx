@@ -67,10 +67,28 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!user || !user.user_id) {
+      const stored = localStorage.getItem("guest_cart");
+      const guestItems = stored ? JSON.parse(stored) : [];
+      const pid = parseInt(product_id);
+      const existingIndex = guestItems.findIndex((item) => item.product_id === pid);
+      if (existingIndex > -1) {
+        guestItems[existingIndex].quantity += quantity;
+      } else {
+        guestItems.push({
+          product_id: pid,
+          cart_item_id: `guest_${pid}`,
+          product_name: product.product_name,
+          price: product.price,
+          quantity: quantity,
+          image_url: product.image_url,
+          stock: product.stock,
+        });
+      }
+      localStorage.setItem("guest_cart", JSON.stringify(guestItems));
       toast({
-        title: "Login Required",
-        description: "Please sign in to add items to your cart",
-        variant: "warning",
+        title: "Added to Cart",
+        description: `${quantity}x ${product.product_name} added to your shopping cart`,
+        variant: "success",
       });
       return;
     }
@@ -240,17 +258,15 @@ export default function ProductDetail() {
 
   return (
     <CustomerLayout>
-      <div className="space-y-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/home")}
-          className="gap-2 text-slate-600 hover:text-slate-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Catalog</span>
-        </Button>
+      <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <button onClick={() => navigate("/home")} className="hover:text-blue-600 font-medium">Home</button>
+          <span>/</span>
+          <span className="text-slate-700 font-medium">{product.category_name || `Category #${product.category_id}`}</span>
+          <span>/</span>
+          <span className="text-slate-900 font-bold truncate max-w-xs">{product.product_name}</span>
+        </div>
 
         {/* Dual Column Presentation */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
@@ -260,6 +276,7 @@ export default function ProductDetail() {
               <img
                 src={product.image_url}
                 alt={product.product_name}
+                loading="lazy"
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -272,20 +289,31 @@ export default function ProductDetail() {
           {/* Product Details & Actions */}
           <div className="flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="font-mono text-xs">
-                  Category #{product.category_id}
+                  {product.category_name || `Category #${product.category_id}`}
                 </Badge>
                 {product.stock > 0 ? (
                   <Badge variant="success">{product.stock} Units in Stock</Badge>
                 ) : (
                   <Badge variant="destructive">Out of Stock</Badge>
                 )}
+                {product.seller_name && (
+                  <span className="text-xs font-medium text-slate-500 ml-auto">
+                    Sold by <span className="font-semibold text-slate-700">{product.seller_name}</span>
+                  </span>
+                )}
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
                 {product.product_name}
               </h1>
+
+              {/* Full Description */}
+              <div className="py-2 border-y border-slate-100 text-sm text-slate-600 leading-relaxed">
+                <h4 className="font-semibold text-slate-900 text-xs uppercase tracking-wider mb-1">Product Description</h4>
+                <p className="whitespace-pre-line">{product.description || "No detailed description provided for this item."}</p>
+              </div>
 
               {/* Rating Summary */}
               <div className="flex items-center gap-2">

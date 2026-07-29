@@ -26,7 +26,7 @@ export const SellerSidebarContent = ({ onNavClick }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const getInitials = (firstName, lastName) => {

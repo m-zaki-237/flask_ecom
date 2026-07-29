@@ -22,6 +22,16 @@ export default function Cart() {
   const navigate = useNavigate();
 
   const fetchCart = async () => {
+    setLoading(true);
+    if (!user) {
+      const stored = localStorage.getItem("guest_cart");
+      const guestItems = stored ? JSON.parse(stored) : [];
+      setItems(guestItems);
+      setCart({ cart_id: "guest", items: guestItems });
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.post("/cart", { user_id: user.user_id });
       const cart_id = res.data.cart_id;
@@ -41,10 +51,22 @@ export default function Cart() {
   };
 
   useEffect(() => {
-    if (user) fetchCart();
+    fetchCart();
   }, [user]);
 
   const handleRemoveItem = async (item_id) => {
+    if (!user) {
+      const updated = items.filter((item) => (item.cart_item_id || item.product_id) !== item_id);
+      setItems(updated);
+      localStorage.setItem("guest_cart", JSON.stringify(updated));
+      toast({
+        title: "Item Removed",
+        description: "Product removed from cart",
+        variant: "info",
+      });
+      return;
+    }
+
     try {
       await api.delete(`/cart/${cart.cart_id}/items/${item_id}`);
       toast({
@@ -65,6 +87,16 @@ export default function Cart() {
 
   const handleUpdateQuantity = async (item_id, quantity) => {
     if (quantity < 1) return;
+
+    if (!user) {
+      const updated = items.map((item) =>
+        (item.cart_item_id || item.product_id) === item_id ? { ...item, quantity } : item
+      );
+      setItems(updated);
+      localStorage.setItem("guest_cart", JSON.stringify(updated));
+      return;
+    }
+
     try {
       await api.patch(`/cart/${cart.cart_id}/items/${item_id}`, { quantity });
       fetchCart();
@@ -79,6 +111,15 @@ export default function Cart() {
   };
 
   const handlePlaceOrder = () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to complete your purchase.",
+        variant: "warning",
+      });
+      navigate("/login", { state: { message: "Please sign in to complete your purchase." } });
+      return;
+    }
     setShowPaymentModal(true);
   };
 

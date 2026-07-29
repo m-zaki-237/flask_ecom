@@ -64,7 +64,7 @@ export default function CustomerLayout({ children }) {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const navLinks = [
@@ -114,28 +114,45 @@ export default function CustomerLayout({ children }) {
 
           {/* User Controls & Profile */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTicketModal(true)}
-              className="hidden sm:inline-flex text-xs h-8"
-            >
-              Contact Support
-            </Button>
+            {user ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowTicketModal(true)}
+                  className="hidden sm:inline-flex text-xs h-8"
+                >
+                  Contact Support
+                </Button>
 
-            <span className="text-xs font-semibold text-slate-700 hidden sm:inline">
-              Hi, {user?.first_name || "User"}
-            </span>
+                <span className="text-xs font-semibold text-slate-700 hidden sm:inline">
+                  Hi, {user.first_name}
+                </span>
 
-            <Button
-              onClick={handleLogout}
-              variant="destructive"
-              size="sm"
-              className="h-8 text-xs font-semibold"
-            >
-              <LogOut className="h-3.5 w-3.5 mr-1" />
-              Logout
-            </Button>
+                <Button
+                  onClick={handleLogout}
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 text-xs font-semibold"
+                >
+                  <LogOut className="h-3.5 w-3.5 mr-1" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="h-8 text-xs font-semibold">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="primary" size="sm" className="h-8 text-xs font-semibold">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button

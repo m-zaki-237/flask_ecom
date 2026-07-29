@@ -144,6 +144,8 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
   const filteredPayments = payments.filter((p) =>
     p.payment_id?.toString().includes(searchQuery) ||
     p.order_id?.toString().includes(searchQuery) ||
+    p.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.customer_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.payment_method?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -154,7 +156,7 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Payments & Transactions</h2>
-            <p className="text-xs text-[#64748B] mt-0.5">Audit transaction history, payment methods, and statuses</p>
+            <p className="text-xs text-[#64748B] mt-0.5">Audit transaction history, customer payments, and statuses</p>
           </div>
 
           <Button onClick={() => setShowAddModal(true)} variant="primary" className="gap-2 shadow-2xs">
@@ -171,7 +173,7 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search payments by Payment ID, Order ID, or Method..."
+              placeholder="Search payments by Payment ID, Order ID, Customer, or Method..."
               className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
             />
           </div>
@@ -202,6 +204,7 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
                 <TableRow>
                   <TableHead>Payment ID</TableHead>
                   <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Method</TableHead>
                   <TableHead>Status</TableHead>
@@ -220,7 +223,18 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
                       Order #{payment.order_id}
                     </TableCell>
 
-                    <TableCell className="font-extrabold text-[#0F172A]">
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-[#0F172A]">
+                          {payment.customer_name || "Customer"}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {payment.customer_email || "N/A"}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="font-extrabold text-[#2563EB]">
                       ${parseFloat(payment.amount).toFixed(2)}
                     </TableCell>
 
@@ -296,34 +310,72 @@ const handleStatusUpdate = async (payment_id, payment_status) => {
       {/* Payment Detail Modal */}
       <Dialog open={!!selectedPayment} onClose={() => setSelectedPayment(null)}>
         <DialogHeader>
-          <DialogTitle>Transaction Details</DialogTitle>
+          <DialogTitle>Transaction & Order Details</DialogTitle>
           <DialogDescription>Payment #{selectedPayment?.payment_id}</DialogDescription>
         </DialogHeader>
 
         {selectedPayment && (
           <div className="space-y-4 my-2 text-sm">
-            <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-2">
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Order ID:</span>
-                <span className="font-bold text-[#0F172A]">#{selectedPayment.order_id}</span>
+            {/* Customer & Order Info Card */}
+            <div className="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                <span className="text-xs text-[#64748B] font-semibold">Customer:</span>
+                <div className="text-right">
+                  <p className="font-bold text-xs text-[#0F172A]">{selectedPayment.customer_name || "Customer"}</p>
+                  <p className="text-[11px] text-[#64748B]">{selectedPayment.customer_email || "N/A"}</p>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Amount:</span>
-                <span className="font-extrabold text-[#2563EB]">${parseFloat(selectedPayment.amount).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Payment Method:</span>
-                <span className="font-medium text-[#0F172A] capitalize">{selectedPayment.payment_method?.replace("_", " ")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Date:</span>
-                <span className="text-[#0F172A]">{selectedPayment.created_at ? new Date(selectedPayment.created_at).toLocaleString() : "N/A"}</span>
+
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                <div>
+                  <span className="text-[#64748B]">Order ID:</span>{" "}
+                  <span className="font-bold text-[#0F172A]">#{selectedPayment.order_id}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B]">Amount:</span>{" "}
+                  <span className="font-extrabold text-[#2563EB]">${parseFloat(selectedPayment.amount).toFixed(2)}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B]">Method:</span>{" "}
+                  <span className="font-semibold text-[#0F172A] capitalize">{selectedPayment.payment_method?.replace("_", " ")}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B]">Date:</span>{" "}
+                  <span className="text-[#0F172A]">{selectedPayment.created_at ? new Date(selectedPayment.created_at).toLocaleDateString() : "N/A"}</span>
+                </div>
               </div>
             </div>
 
+            {/* Purchased Products List */}
+            {selectedPayment.products && selectedPayment.products.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#475569]">Purchased Products:</span>
+                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                  {selectedPayment.products.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E2E8F0] text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {item.product_image ? (
+                          <img src={item.product_image} alt={item.product_name} className="h-8 w-8 rounded-md object-cover border border-slate-200 shrink-0" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-md bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <CreditCard className="h-4 w-4" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-bold text-[#0F172A] truncate">{item.product_name}</p>
+                          <p className="text-[11px] text-[#64748B]">Qty: {item.quantity} × ${parseFloat(item.unit_price || 0).toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-[#0F172A] shrink-0">${parseFloat(item.total_price || (item.unit_price * item.quantity)).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-                Update Status
+                Update Payment Status
               </label>
               <select
                 defaultValue={selectedPayment.payment_status}

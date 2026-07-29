@@ -46,6 +46,7 @@ const SellerProducts = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [form, setForm] = useState({
     product_name: "",
+    description: "",
     price: "",
     stock: "",
     category_id: "",
@@ -115,6 +116,7 @@ const SellerProducts = () => {
       const formData = new FormData();
       formData.append("image_url", image);
       formData.append("product_name", form.product_name);
+      formData.append("description", form.description);
       formData.append("price", form.price);
       formData.append("stock", form.stock);
       formData.append("category_id", form.category_id);
@@ -132,7 +134,7 @@ const SellerProducts = () => {
       });
 
       setShowModal(false);
-      setForm({ product_name: "", price: "", stock: "", category_id: "" });
+      setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
       setImage(null);
       setImagePreview(null);
       fetchProducts(page);
@@ -153,12 +155,27 @@ const SellerProducts = () => {
     setSubmitting(true);
 
     try {
-      await api.patch(`/product/update/${editProduct.product_id}`, {
-        product_name: form.product_name,
-        price: form.price,
-        stock: form.stock,
-        category_id: form.category_id,
-      });
+      if (image) {
+        const formData = new FormData();
+        formData.append("image_url", image);
+        formData.append("product_name", form.product_name);
+        formData.append("description", form.description);
+        formData.append("price", form.price);
+        formData.append("stock", form.stock);
+        formData.append("category_id", form.category_id);
+
+        await api.patch(`/product/update/${editProduct.product_id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.patch(`/product/update/${editProduct.product_id}`, {
+          product_name: form.product_name,
+          description: form.description,
+          price: form.price,
+          stock: form.stock,
+          category_id: form.category_id,
+        });
+      }
 
       toast({
         title: "Product Updated",
@@ -342,10 +359,12 @@ const SellerProducts = () => {
 
                             setForm({
                               product_name: product.product_name,
+                              description: product.description || "",
                               price: product.price,
                               stock: product.stock,
                               category_id: product.category_id,
                             });
+                            setImagePreview(product.image_url);
 
                             setShowModal(true);
                           }}
@@ -430,6 +449,21 @@ const SellerProducts = () => {
               }
               placeholder="e.g. Mechanical Keyboard"
               required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
+              Description
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              rows={3}
+              className="flex w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-xs shadow-2xs placeholder:text-[#94A3B8] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              placeholder="Brief description of product features..."
             />
           </div>
 

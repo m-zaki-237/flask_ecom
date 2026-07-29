@@ -9,6 +9,7 @@ class Order(db.Model):
 
     order_items = db.relationship('OrderItem', cascade='all, delete-orphan', backref='order')
     payments = db.relationship('Payment', cascade='all, delete-orphan', lazy=True)
+    user = db.relationship('User', overlaps="orders")
 
 
     def __repr__(self):

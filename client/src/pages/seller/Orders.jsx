@@ -129,7 +129,9 @@ const SellerOrders = () => {
                   <TableHead>Customer</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Qty</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Total Amount</TableHead>
+                  <TableHead>Order Status</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -141,11 +143,18 @@ const SellerOrders = () => {
                       #{order.order_id}
                     </TableCell>
 
-                    <TableCell className="font-medium text-[#0F172A] text-xs">
-                      {order.customer_name || "Customer"}
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-[#0F172A]">
+                          {order.customer_name || "Customer"}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {order.customer_email || "N/A"}
+                        </span>
+                      </div>
                     </TableCell>
 
-                    <TableCell className="font-semibold text-[#0F172A] text-xs">
+                    <TableCell className="font-semibold text-[#0F172A] text-xs max-w-[160px] truncate">
                       {order.product_name || "N/A"}
                     </TableCell>
 
@@ -153,10 +162,20 @@ const SellerOrders = () => {
                       x{order.quantity}
                     </TableCell>
 
+                    <TableCell className="font-extrabold text-xs text-[#2563EB]">
+                      ${parseFloat(order.total_amount || 0).toFixed(2)}
+                    </TableCell>
+
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
 
+                    <TableCell>
+                      <Badge variant={order.payment_status === "completed" ? "success" : "warning"} className="capitalize text-xs">
+                        {order.payment_status || "pending"}
+                      </Badge>
+                    </TableCell>
+
                     <TableCell className="text-xs text-[#64748B]">
-                      {order.created_at || "N/A"}
+                      {order.created_at ? new Date(order.created_at).toLocaleDateString() : "N/A"}
                     </TableCell>
 
                     <TableCell className="text-right">

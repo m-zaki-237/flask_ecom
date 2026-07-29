@@ -7,6 +7,7 @@ from models.order_item import OrderItem
 from middlewares.auth import jwt_required, role_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
 from schemas.order_schema import OrderCreateSchema
+from sqlalchemy.orm import joinedload
 
 order_bp = Blueprint('order', __name__)
 order_schema = OrderCreateSchema()
@@ -57,19 +58,53 @@ def create_order():
 @order_bp.route('/orders/<int:order_id>', methods=['GET'])
 @jwt_required()
 def get_order(order_id):
-    order = Order.query.get(order_id)
+    order = Order.query.options(
+        joinedload(Order.user),
+        joinedload(Order.order_items).joinedload(OrderItem.product),
+        joinedload(Order.payments)
+    ).filter_by(order_id=order_id).first()
+
     if not order:
         return jsonify({'error': 'Order not found'}), 404
 
     if get_current_user_role() != "admin" and order.user_id != get_current_user_id():
         return jsonify({"error": "Access forbidden"}), 403
 
+    user = order.user
+    latest_payment = order.payments[0] if order.payments else None
+
+    items_data = []
+    total_amount = 0.0
+
+    for item in order.order_items:
+        prod = item.product
+        unit_price = float(prod.price) if (prod and prod.price is not None) else 0.0
+        item_total = unit_price * item.quantity
+        total_amount += item_total
+        items_data.append({
+            'order_item_id': item.order_item_id,
+            'product_id': item.product_id,
+            'product_name': prod.product_name if prod else f"Product #{item.product_id}",
+            'product_image': prod.image_url if prod else None,
+            'image_url': prod.image_url if prod else None,
+            'quantity': item.quantity,
+            'unit_price': unit_price,
+            'price': unit_price,
+            'total_price': round(item_total, 2),
+            'variant': item.variant
+        })
+
     order_data = {
         'order_id': order.order_id,
         'user_id': order.user_id,
-        'items': [{'product_id': item.product_id, 'quantity': item.quantity, 'variant': item.variant} for item in order.order_items],
+        'customer_name': f"{user.first_name} {user.last_name}" if user else "Customer",
+        'customer_email': user.email if user else "N/A",
+        'total_amount': round(total_amount, 2),
+        'items': items_data,
         'status': order.status,
-        'created_at': order.created_at
+        'payment_status': latest_payment.payment_status if latest_payment else "pending",
+        'payment_method': latest_payment.payment_method if latest_payment else "N/A",
+        'created_at': order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else None
     }
 
     return jsonify(order_data), 200
@@ -198,19 +233,58 @@ def get_order_items(order_id):
 @order_bp.route('/orders', methods=['GET'])
 @role_required("admin")
 def get_all_orders():
-    page = request.args.get('page',1,type=int)
-    limit = request.args.get('limit',10,type=int)
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
 
-    paginated = Order.query.paginate(page=page, per_page=limit, error_out=False)
+    query = Order.query.options(
+        joinedload(Order.user),
+        joinedload(Order.order_items).joinedload(OrderItem.product),
+        joinedload(Order.payments)
+    ).order_by(Order.order_id.desc())
+
+    paginated = query.paginate(page=page, per_page=limit, error_out=False)
     result = []
 
     for order in paginated.items:
+        user = order.user
+        latest_payment = order.payments[0] if order.payments else None
+
+        items_data = []
+        total_amount = 0.0
+        total_quantity = 0
+
+        for item in order.order_items:
+            prod = item.product
+            unit_price = float(prod.price) if (prod and prod.price is not None) else 0.0
+            item_total = unit_price * item.quantity
+            total_amount += item_total
+            total_quantity += item.quantity
+
+            items_data.append({
+                'order_item_id': item.order_item_id,
+                'product_id': item.product_id,
+                'product_name': prod.product_name if prod else f"Product #{item.product_id}",
+                'product_image': prod.image_url if prod else None,
+                'image_url': prod.image_url if prod else None,
+                'quantity': item.quantity,
+                'unit_price': unit_price,
+                'price': unit_price,
+                'total_price': round(item_total, 2),
+                'variant': item.variant
+            })
+
         result.append({
             'order_id': order.order_id,
             'user_id': order.user_id,
-            'items': [{'product_id': item.product_id, 'quantity': item.quantity, 'variant': item.variant} for item in order.order_items],
+            'customer_name': f"{user.first_name} {user.last_name}" if user else "Customer",
+            'customer_email': user.email if user else "N/A",
+            'total_amount': round(total_amount, 2),
+            'item_count': total_quantity,
+            'items': items_data,
             'status': order.status,
-            'created_at': order.created_at
+            'payment_status': latest_payment.payment_status if latest_payment else "pending",
+            'payment_method': latest_payment.payment_method if latest_payment else "N/A",
+            'created_at': order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else None
         })
 
     return jsonify({
@@ -252,14 +326,43 @@ def get_user_orders(user_id):
     if get_current_user_role() != "admin" and user_id != get_current_user_id():
         return jsonify({"error": "Access forbidden"}), 403
 
-    orders = Order.query.filter_by(user_id=user_id).all()
+    orders = Order.query.options(
+        joinedload(Order.order_items).joinedload(OrderItem.product),
+        joinedload(Order.payments)
+    ).filter_by(user_id=user_id).order_by(Order.order_id.desc()).all()
+
     result = []
     for order in orders:
+        latest_payment = order.payments[0] if order.payments else None
+        items_data = []
+        total_amount = 0.0
+
+        for item in order.order_items:
+            prod = item.product
+            unit_price = float(prod.price) if (prod and prod.price is not None) else 0.0
+            item_total = unit_price * item.quantity
+            total_amount += item_total
+            items_data.append({
+                "order_item_id": item.order_item_id,
+                "product_id": item.product_id,
+                "product_name": prod.product_name if prod else f"Product #{item.product_id}",
+                "product_image": prod.image_url if prod else None,
+                "image_url": prod.image_url if prod else None,
+                "quantity": item.quantity,
+                "unit_price": unit_price,
+                "price": unit_price,
+                "total_price": round(item_total, 2),
+                "variant": item.variant
+            })
+
         result.append({
             "order_id": order.order_id,
             "status": order.status,
-            "created_at": order.created_at,
-            "items": [{"product_id": item.product_id, "quantity": item.quantity} for item in order.order_items]
+            "payment_status": latest_payment.payment_status if latest_payment else "pending",
+            "payment_method": latest_payment.payment_method if latest_payment else "N/A",
+            "total_amount": round(total_amount, 2),
+            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else None,
+            "items": items_data
         })
     return jsonify(result), 200
 
@@ -278,6 +381,7 @@ def get_seller_orders():
         .join(Product, Product.product_id == OrderItem.product_id)
         .join(User, User.user_id == Order.user_id)
         .filter(Product.seller_id == seller_id)
+        .order_by(Order.order_id.desc())
     )
 
     paginated = query.paginate(
@@ -287,14 +391,23 @@ def get_seller_orders():
     )
     result = []
     for order, item, product, user in paginated.items:
+        latest_payment = order.payments[0] if order.payments else None
+        unit_price = float(product.price) if (product and product.price is not None) else 0.0
+        item_total = unit_price * item.quantity
+
         result.append({
             "order_id": order.order_id,
-            "customer_name": f"{user.first_name} {user.last_name}",
-            "customer_email": user.email,
-            "product_name": product.product_name,
+            "user_id": user.user_id,
+            "customer_name": f"{user.first_name} {user.last_name}" if user else "Customer",
+            "customer_email": user.email if user else "N/A",
+            "product_name": product.product_name if product else "N/A",
+            "product_image": product.image_url if product else None,
             "quantity": item.quantity,
-            "price": product.price,
+            "price": unit_price,
+            "total_amount": round(item_total, 2),
             "status": order.status,
+            "payment_status": latest_payment.payment_status if latest_payment else "pending",
+            "payment_method": latest_payment.payment_method if latest_payment else "N/A",
             "created_at": (
                 order.created_at.strftime("%Y-%m-%d %H:%M:%S")
                 if order.created_at else None

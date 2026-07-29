@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/axios.js";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { Store, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { Store, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -16,6 +16,8 @@ export const Login = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,6 +63,13 @@ export const Login = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {redirectMessage && (
+            <div className="flex items-center gap-2 p-3 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold">
+              <Info className="h-4 w-4 shrink-0 text-blue-600" />
+              <span>{redirectMessage}</span>
+            </div>
+          )}
+
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
               <AlertCircle className="h-4 w-4 shrink-0" />

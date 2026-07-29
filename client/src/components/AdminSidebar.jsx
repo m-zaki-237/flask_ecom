@@ -32,7 +32,7 @@ export const AdminSidebarContent = ({ onNavClick }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const getInitials = (firstName, lastName) => {

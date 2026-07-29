@@ -97,6 +97,10 @@ def add_item_to_wishlist(wishlist_id):
     if not product_id:
         return jsonify({'error': 'Product ID is required'}), 400
 
+    existing_item = WishlistItem.query.filter_by(wishlist_id=wishlist_id, product_id=product_id).first()
+    if existing_item:
+        return jsonify({'error': 'Item already in wishlist', 'item_id': existing_item.wishlist_item_id}), 409
+
     new_item = WishlistItem(wishlist_id=wishlist_id, product_id=product_id)
     db.session.add(new_item)
     db.session.commit()
@@ -145,12 +149,16 @@ def get_my_wishlist():
         "wishlist_id": wishlist.wishlist_id,
         "products": [
             {
+                "wishlist_item_id": item.wishlist_item_id,
                 "product_id": item.product_id,
-                "product_name": item.product.product_name,
-                "price": item.product.price,
-                "image_url": item.product.image_url
+                "product_name": item.product.product_name if item.product else "Unknown Product",
+                "description": item.product.description if (item.product and item.product.description) else "",
+                "price": float(item.product.price) if (item.product and item.product.price is not None) else 0.0,
+                "image_url": item.product.image_url if item.product else None,
+                "category_id": item.product.category_id if item.product else None,
+                "stock": item.product.stock if item.product else 0
             }
-            for item in wishlist.items
+            for item in wishlist.items if item.product
         ]
     }
 

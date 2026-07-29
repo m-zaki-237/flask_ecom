@@ -97,7 +97,8 @@ export default function Orders() {
 
   const filteredOrders = orders.filter((o) =>
     o.order_id?.toString().includes(searchQuery) ||
-    o.user_id?.toString().includes(searchQuery) ||
+    o.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    o.customer_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     o.status?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -107,7 +108,7 @@ export default function Orders() {
         {/* Header */}
         <div>
           <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Order Management</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Track customer orders and update shipment statuses</p>
+          <p className="text-xs text-[#64748B] mt-0.5">Track customer orders, items, and update shipment statuses</p>
         </div>
 
         {/* Filter & Search Bar */}
@@ -118,7 +119,7 @@ export default function Orders() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search orders by Order ID, User ID, or Status..."
+              placeholder="Search orders by Order ID, Customer Name, Email, or Status..."
               className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
             />
           </div>
@@ -148,10 +149,12 @@ export default function Orders() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
-                  <TableHead>User ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Total Amount</TableHead>
                   <TableHead>Items</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Order Status</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Created Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -162,17 +165,34 @@ export default function Orders() {
                       #{order.order_id}
                     </TableCell>
 
-                    <TableCell className="font-mono text-xs text-[#475569]">
-                      User #{order.user_id}
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-xs text-[#0F172A]">
+                          {order.customer_name || `User #${order.user_id}`}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {order.customer_email || "N/A"}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="font-extrabold text-xs text-[#2563EB]">
+                      ${parseFloat(order.total_amount || 0).toFixed(2)}
                     </TableCell>
 
                     <TableCell>
                       <Badge variant="outline" className="font-mono text-xs">
-                        {order.items?.length || 0} items
+                        {order.item_count || order.items?.length || 0} items
                       </Badge>
                     </TableCell>
 
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
+
+                    <TableCell>
+                      <Badge variant={order.payment_status === "completed" ? "success" : "warning"} className="capitalize text-xs">
+                        {order.payment_status || "pending"}
+                      </Badge>
+                    </TableCell>
 
                     <TableCell className="text-xs text-[#64748B]">
                       {order.created_at ? new Date(order.created_at).toLocaleDateString() : "N/A"}

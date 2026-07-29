@@ -18,6 +18,16 @@ class Product(db.Model):
         nullable=False
     )
 
+    description = db.Column(
+        db.Text,
+        nullable=True
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
     price = db.Column(
         db.Numeric(10,2),
         nullable=False
