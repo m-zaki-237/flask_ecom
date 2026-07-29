@@ -83,25 +83,31 @@ export default function Payments() {
     }
   };
 
-  const handleStatusUpdate = async (payment_id, payment_status) => {
-    try {
-      await api.put(`/payments/${payment_id}/status`, { payment_status });
-      toast({
-        title: "Payment Updated",
-        description: `Payment #${payment_id} set to ${payment_status}`,
-        variant: "success",
-      });
-      setSelectedPayment(null);
-      fetchPayments(page);
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Update Failed",
-        description: "Failed to update payment status",
-        variant: "destructive",
-      });
-    }
-  };
+const handleStatusUpdate = async (payment_id, payment_status) => {
+  try {
+    await api.patch(`/payments/update/${payment_id}`, {
+      payment_status
+    });
+
+    toast({
+      title: "Payment Updated",
+      description: `Payment #${payment_id} set to ${payment_status}`,
+      variant: "success",
+    });
+
+    setSelectedPayment(null);
+    fetchPayments(page);
+
+  } catch (err) {
+    console.error(err);
+
+    toast({
+      title: "Update Failed",
+      description: err.response?.data?.error || "Failed to update payment status",
+      variant: "destructive",
+    });
+  }
+};
 
   const handleDelete = async () => {
     if (!deleteId) return;

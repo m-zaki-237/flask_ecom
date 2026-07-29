@@ -41,7 +41,7 @@ const Users = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await api.delete(`/users/${deleteId}`);
+      await api.delete(`/user/delete/${deleteId}`);
       toast({
         title: "User Deleted",
         description: `User #${deleteId} removed`,

@@ -139,19 +139,35 @@ def update_product(product_id):
 @product_bp.route("/product/delete/<int:product_id>", methods=["DELETE"])
 @role_required("admin","seller")
 def delete_product(product_id):
+
     product = Product.query.get(product_id)
 
     if not product:
-        return {"message": "product not found!"}, 404
+        return jsonify({"message": "product not found!"}), 404
+
+    if product.order_items:
+        return jsonify({
+            "message": "Cannot delete product because it exists in orders"
+        }), 400
+
+    if product.reviews:
+        return jsonify({
+            "message": "Cannot delete product because it has reviews"
+        }), 400
 
     db.session.delete(product)
     db.session.commit()
 
-    log_action("products", product_id, "DELETE", f"Product {product_id} deleted by admin")
-    
+    log_action(
+        "products",
+        product_id,
+        "DELETE",
+        f"Product {product_id} deleted"
+    )
+
     return jsonify({
         "message": "product deleted successfully",
-        "product_id": product.product_id
+        "product_id": product_id
     }), 200
 
 @product_bp.route("/seller/products", methods=["GET"])

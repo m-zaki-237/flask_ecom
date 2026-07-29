@@ -60,26 +60,33 @@ const Products = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteId) return;
-    try {
-      await api.delete(`/product/delete/${deleteId}`);
-      toast({
-        title: "Product Deleted",
-        description: `Product #${deleteId} removed`,
-        variant: "success",
-      });
-      setDeleteId(null);
-      fetchProducts(page);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Deletion Failed",
-        description: "Could not remove product",
-        variant: "destructive",
-      });
-    }
-  };
+const handleDelete = async () => {
+  if (!deleteId) return;
+
+  try {
+    await api.delete(`/product/delete/${deleteId}`);
+
+    toast({
+      title: "Product Deleted",
+      description: `Product #${deleteId} removed`,
+      variant: "success",
+    });
+
+    setDeleteId(null);
+    fetchProducts(page);
+
+  } catch (error) {
+    console.error(error);
+
+    toast({
+      title: "Deletion Failed",
+      description:
+        error.response?.data?.message ||
+        "Could not delete product",
+      variant: "destructive",
+    });
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
