@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required as flask_jwt_required, get_jwt_identity
 from middlewares.auth import jwt_required, role_required
 from middlewares.audit_log import log_action
 from schemas.user_schema import UserRegisterSchema
@@ -93,11 +93,16 @@ def login_user():
             additional_claims = {"role":user.role.role_name}
         )
 
+        refresh_token = create_refresh_token(
+            identity=str(user.user_id)
+        )
+
         log_action("users", user.user_id, "LOGIN", f"User {user.email} logged in")
 
         return jsonify({
             "message": "login successful",
             "access_token": access_token,
+            "refresh_token": refresh_token,
             "user_id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -106,6 +111,26 @@ def login_user():
         }), 200
     else:
         return jsonify({"message": "invalid credentials"}), 401
+
+@user_bp.route("/user/refresh", methods=["POST"])
+@flask_jwt_required(refresh=True)
+def refresh_token():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error":"user not found"}), 404
+
+    new_access_token = create_access_token(
+        identity=user_id,
+        additional_claims={
+            "role": user.role.role_name
+        }
+    )
+
+    return jsonify({
+        "access_token": new_access_token
+    })
 
 @user_bp.route("/user/update/<int:user_id>", methods=["PATCH"])
 @jwt_required()

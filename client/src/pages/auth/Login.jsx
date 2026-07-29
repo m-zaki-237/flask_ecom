@@ -32,6 +32,7 @@ export const Login = () => {
           role: res.data.role,
         },
         res.data.access_token,
+        res.data.refresh_token
       );
       const role = res.data.role;
       if (role === "admin") navigate("/admin/dashboard");

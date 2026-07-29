@@ -1,12 +1,36 @@
 import { useState, useEffect } from "react";
 import SellerLayout from "../../components/SellerLayout";
 import api from "../../api/axios";
-import { Plus, Search, Trash2, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, Package, AlertCircle, MoreVertical } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Trash2,
+  Image as ImageIcon,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  AlertCircle,
+  MoreVertical,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
@@ -29,11 +53,14 @@ const SellerProducts = () => {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editProduct, setEditProduct] = useState(null);
 
   const fetchProducts = async (currentPage = 1) => {
     setLoading(true);
     try {
-      const res = await api.get(`/seller/products?page=${currentPage}&limit=10`);
+      const res = await api.get(
+        `/seller/products?page=${currentPage}&limit=10`,
+      );
       setProducts(res.data?.products || []);
       setTotalPages(res.data?.pages || 1);
     } catch (error) {
@@ -121,9 +148,52 @@ const SellerProducts = () => {
     }
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.product_id?.toString().includes(searchQuery)
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      await api.patch(`/product/update/${editProduct.product_id}`, {
+        product_name: form.product_name,
+        price: form.price,
+        stock: form.stock,
+        category_id: form.category_id,
+      });
+
+      toast({
+        title: "Product Updated",
+        description: `${form.product_name} updated successfully`,
+        variant: "success",
+      });
+
+      setShowModal(false);
+      setEditProduct(null);
+
+      setForm({
+        product_name: "",
+        price: "",
+        stock: "",
+        category_id: "",
+      });
+
+      fetchProducts(page);
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: "Update Failed",
+        description:
+          error.response?.data?.message || "Failed to update product",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  const filteredProducts = products.filter(
+    (p) =>
+      p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.product_id?.toString().includes(searchQuery),
   );
 
   const getStockBadge = (stock) => {
@@ -138,8 +208,12 @@ const SellerProducts = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">My Products</h2>
-            <p className="text-xs text-[#64748B] mt-0.5">Manage store listings and inventory stock</p>
+            <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">
+              My Products
+            </h2>
+            <p className="text-xs text-[#64748B] mt-0.5">
+              Manage store listings and inventory stock
+            </p>
           </div>
 
           <Button
@@ -180,12 +254,20 @@ const SellerProducts = () => {
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-16 px-4">
               <Package className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Products Listed</h3>
+              <h3 className="font-semibold text-[#0F172A] text-sm">
+                No Products Listed
+              </h3>
               <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto mb-4">
-                {searchQuery ? "No products match your search query." : "Click Add Product to start listing store products."}
+                {searchQuery
+                  ? "No products match your search query."
+                  : "Click Add Product to start listing store products."}
               </p>
               {!searchQuery && (
-                <Button size="sm" variant="success" onClick={() => setShowModal(true)}>
+                <Button
+                  size="sm"
+                  variant="success"
+                  onClick={() => setShowModal(true)}
+                >
                   Add Product
                 </Button>
               )}
@@ -245,12 +327,37 @@ const SellerProducts = () => {
                     <TableCell className="text-right">
                       <DropdownMenu
                         trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-[#475569]"
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         }
                       >
-                        <DropdownMenuItem destructive onClick={() => setDeleteId(product.product_id)}>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditProduct(product);
+
+                            setForm({
+                              product_name: product.product_name,
+                              price: product.price,
+                              stock: product.stock,
+                              category_id: product.category_id,
+                            });
+
+                            setShowModal(true);
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5 mr-2"/>
+                          Edit Product
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          destructive
+                          onClick={() => setDeleteId(product.product_id)}
+                        >
                           <Trash2 className="h-3.5 w-3.5 mr-2" />
                           Delete Product
                         </DropdownMenuItem>
@@ -266,7 +373,8 @@ const SellerProducts = () => {
           {!loading && totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
               <span className="text-xs text-[#64748B] font-medium">
-                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
+                Page <span className="font-bold text-[#0F172A]">{page}</span> of{" "}
+                {totalPages}
               </span>
               <div className="flex gap-2">
                 <Button
@@ -298,11 +406,18 @@ const SellerProducts = () => {
       {/* Add Product Modal */}
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
         <DialogHeader>
-          <DialogTitle>Add Product to Store</DialogTitle>
-          <DialogDescription>List a new item in your merchant catalog.</DialogDescription>
+          <DialogTitle>
+            {editProduct ? "Update Product" : "Add Product to Store"}
+          </DialogTitle>
+          <DialogDescription>
+            List a new item in your merchant catalog.
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 my-2">
+        <form
+          onSubmit={editProduct ? handleUpdate : handleSubmit}
+          className="space-y-4 my-2"
+        >
           <div>
             <label className="block text-xs font-semibold text-[#0F172A] mb-1">
               Product Name
@@ -310,7 +425,9 @@ const SellerProducts = () => {
             <Input
               type="text"
               value={form.product_name}
-              onChange={(e) => setForm({ ...form, product_name: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, product_name: e.target.value })
+              }
               placeholder="e.g. Mechanical Keyboard"
               required
             />
@@ -352,7 +469,9 @@ const SellerProducts = () => {
             <Input
               type="number"
               value={form.category_id}
-              onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, category_id: e.target.value })
+              }
               placeholder="1"
               required
             />
@@ -366,21 +485,35 @@ const SellerProducts = () => {
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              required
+              required={!editProduct}
             />
             {imagePreview && (
               <div className="mt-2 relative h-28 w-full rounded-md overflow-hidden border border-[#E2E8F0]">
-                <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
+                />
               </div>
             )}
           </div>
 
           <div className="flex gap-3 pt-2">
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowModal(false)}
-              className="flex-1"
+              onClick={() => {
+                setShowModal(false);
+                setEditProduct(null);
+
+                setForm({
+                  product_name: "",
+                  price: "",
+                  stock: "",
+                  category_id: "",
+                });
+
+                setImage(null);
+                setImagePreview(null);
+              }}
             >
               Cancel
             </Button>
@@ -396,7 +529,7 @@ const SellerProducts = () => {
                   <span>Uploading...</span>
                 </>
               ) : (
-                <span>Create Product</span>
+                <span>{editProduct ? "Update Product" : "Create Product"}</span>
               )}
             </Button>
           </div>
@@ -410,17 +543,28 @@ const SellerProducts = () => {
             <AlertCircle className="h-5 w-5" />
             <span>Confirm Delete</span>
           </div>
-          <DialogTitle className="mt-1">Delete Product #{deleteId}?</DialogTitle>
+          <DialogTitle className="mt-1">
+            Delete Product #{deleteId}?
+          </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. The product will be removed from your catalog.
+            This action cannot be undone. The product will be removed from your
+            catalog.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteId(null)}
+            className="flex-1"
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            className="flex-1"
+          >
             Delete Product
           </Button>
         </div>

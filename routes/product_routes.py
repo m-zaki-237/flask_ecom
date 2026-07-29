@@ -119,6 +119,11 @@ def update_product(product_id):
     if not product:
         return {"message": "product not found!"}, 404
 
+    if product.seller_id != get_current_user_id():
+        return jsonify({
+        "message": "You cannot update another seller's product"
+        }), 403
+
     data = request.json
 
     product.image_url = data.get("image_url", product.image_url)
