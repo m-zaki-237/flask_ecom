@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.product import Product
 from models.category import Category
-from middlewares.auth import role_required
+from middlewares.auth import role_required, get_current_user_id
 from middlewares.audit_log import log_action
 from schemas.product_schema import ProductCreateSchema
 from utils.cloudinary import upload_image
@@ -92,11 +92,12 @@ def create_product():
         return jsonify({"message": "Invalid category"}), 400
 
     new_product = Product(
-        image_url= image,
-        product_name=data["product_name"],
-        price=float(data["price"]),
-        stock=int(data["stock"]),
-        category_id=int(data["category_id"])
+       image_url=image,
+       product_name=data["product_name"],
+       price=float(data["price"]),
+       stock=int(data["stock"]),
+       category_id=int(data["category_id"]),
+       seller_id=get_current_user_id()
     )
 
     db.session.add(new_product)
@@ -151,4 +152,36 @@ def delete_product(product_id):
     return jsonify({
         "message": "product deleted successfully",
         "product_id": product.product_id
+    }), 200
+
+@product_bp.route("/seller/products", methods=["GET"])
+@role_required("seller")
+def get_seller_products():
+    seller_id = get_current_user_id()
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    paginated = Product.query.filter_by(
+        seller_id=seller_id
+    ).paginate(
+        page=page,
+        per_page=limit,
+        error_out=False
+    )
+    products = []
+
+    for product in paginated.items:
+        products.append({
+            "product_id": product.product_id,
+            "image_url": product.image_url,
+            "product_name": product.product_name,
+            "price": product.price,
+            "stock": product.stock,
+            "category_id": product.category_id
+        })
+
+    return jsonify({
+        "products": products,
+        "total": paginated.total,
+        "pages": paginated.pages,
+        "current_page": paginated.page
     }), 200

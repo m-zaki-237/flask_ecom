@@ -14,6 +14,10 @@ import Cart from "./pages/customer/Cart"
 import { CustomerOrders } from "./pages/customer/Orders"
 import Wishlist from "./pages/customer/Wishlist"
 import { Tickets } from "./pages/customer/Ticket"
+import SellerDashboard from "./pages/seller/Dashboard"
+import SellerProducts from "./pages/seller/Products"
+import SellerPayments from "./pages/seller/Payments"
+import SellerOrders from "./pages/seller/Orders"
 const App = () => {
   return (
     <BrowserRouter>
@@ -34,6 +38,10 @@ const App = () => {
       <Route path="/orders" element={<CustomerOrders/>}/>
       <Route path="/wishlist" element={<Wishlist/>}/>
       <Route path="/support_tickets" element={<Tickets/>}/>
+      <Route path="/seller/dashboard" element={<SellerDashboard/>}/>
+      <Route path="/seller/products" element={<SellerProducts/>}/>
+      <Route path="/seller/payments" element={<SellerPayments/>}/>
+      <Route path="/seller/orders" element={<SellerOrders/>}/>
     </Routes>
     </BrowserRouter>
   )

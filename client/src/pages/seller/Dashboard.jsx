@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
+import SellerLayout from "../../components/SellerLayout";
 
-const Dashboard = () => {
+const SellerDashboard = () => {
   const [stats, setStats] = useState({
-    users: 0,
     products: 0,
     orders: 0,
     payments: 0,
@@ -14,15 +13,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [users, products, orders, payments] = await Promise.all([
-          api.get("/users"),
-          api.get("/product"),
-          api.get("/orders"),
-          api.get("/payments"),
+        const [products, orders, payments] = await Promise.all([
+          api.get("/seller/products"),
+          api.get("/seller/orders"),
+          api.get("/seller/payments"),
         ]);
 
         setStats({
-          users: users.data.length,
           products: products.data.products.length,
           orders: orders.data.orders.length,
           payments: payments.data.payments.length,
@@ -38,7 +35,6 @@ const Dashboard = () => {
   }, []);
 
   const cards = [
-    { label: "Total Users", value: stats.users, bg: "bg-blue-500" },
     { label: "Total Products", value: stats.products, bg: "bg-green-500" },
     { label: "Total Orders", value: stats.orders, bg: "bg-yellow-500" },
     { label: "Total Payments", value: stats.payments, bg: "bg-purple-500" },
@@ -46,13 +42,13 @@ const Dashboard = () => {
 
   if (loading)
     return (
-      <AdminLayout>
+      <SellerLayout>
         <p className="text-gray-500">Loading...</p>
-      </AdminLayout>
+      </SellerLayout>
     );
 
   return (
-    <AdminLayout>
+    <SellerLayout>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       <div className="grid grid-cols-4 gap-6">
         {cards.map((card) => (
@@ -65,8 +61,8 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
-    </AdminLayout>
+    </SellerLayout>
   );
 };
 
-export default Dashboard;
+export default SellerDashboard;

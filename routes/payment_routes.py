@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
 from database import db
+from models.order import Order
 from models.payment import Payment
-from middlewares.auth import jwt_required, role_required
+from models.order_item import OrderItem
+from models.product import Product
+from middlewares.auth import jwt_required, role_required, get_current_user_id
 from middlewares.audit_log import log_action
 from schemas.payment_schema import PaymentCreateSchema
 
@@ -114,3 +117,46 @@ def update_payment(payment_id):
     log_action("payments", payment_id, "UPDATE", f"Payment {payment_id} status updated to {payment.payment_status}")
 
     return jsonify({"message" : "payment updated successfully", "payment_id":payment.payment_id})
+
+
+@payment_bp.route('/seller/payments', methods=['GET'])
+@role_required("seller")
+def get_seller_payments():
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    
+    seller_id = get_current_user_id()
+    paginated = (
+        db.session.query(Payment)
+        .join(Order, Payment.order_id == Order.order_id)
+        .join(OrderItem, Order.order_id == OrderItem.order_id)
+        .join(Product, OrderItem.product_id == Product.product_id)
+        .filter(Product.seller_id == seller_id)
+        .paginate(
+            page=page,
+            per_page=limit,
+            error_out=False
+        )
+    )
+
+    if not paginated.items:
+        return jsonify({
+            "error": "No payments found"
+        }), 404
+
+    result = []
+    for payment in paginated.items:
+        result.append({
+            "payment_id": payment.payment_id,
+            "order_id": payment.order_id,
+            "amount": payment.amount,
+            "payment_method": payment.payment_method,
+            "payment_status": payment.payment_status
+        })
+
+    return jsonify({
+        "payments": result,
+        "total": paginated.total,
+        "pages": paginated.pages,
+        "current_page": paginated.page
+    }), 200
