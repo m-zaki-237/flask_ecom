@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/CustomerLayout";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
+import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   ShoppingCart,
