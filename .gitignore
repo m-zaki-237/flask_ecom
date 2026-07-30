@@ -1,7 +1,18 @@
+# Python
 venv/
 __pycache__/
 *.pyc
-.env
-instance/
 .pytest_cache/
+
+# Environment
+.env
+
+# Flask
+instance/
+
+# Editor
 .vscode/
+
+# Database seed files
+seeder/
+*.sql
