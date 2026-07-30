@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { Plus, Search, Trash2, Image as ImageIcon, Loader2, ChevronLeft, ChevronRight, Package, AlertCircle, MoreVertical, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import {
+  Plus,
+  Search,
+  Trash2,
+  Image as ImageIcon,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Package,
+  Pencil,
+  X
+} from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 const Products = () => {
@@ -62,33 +67,26 @@ const Products = () => {
     }
   };
 
-const handleDelete = async () => {
-  if (!deleteId) return;
-
-  try {
-    await api.delete(`/product/delete/${deleteId}`);
-
-    toast({
-      title: "Product Deleted",
-      description: `Product #${deleteId} removed`,
-      variant: "success",
-    });
-
-    setDeleteId(null);
-    fetchProducts(page);
-
-  } catch (error) {
-    console.error(error);
-
-    toast({
-      title: "Deletion Failed",
-      description:
-        error.response?.data?.message ||
-        "Could not delete product",
-      variant: "destructive",
-    });
-  }
-};
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await api.delete(`/product/delete/${deleteId}`);
+      toast({
+        title: "Product Deleted",
+        description: `Product #${deleteId} removed`,
+        variant: "success",
+      });
+      setDeleteId(null);
+      fetchProducts(page);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Deletion Failed",
+        description: error.response?.data?.message || "Could not delete product",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,6 +132,7 @@ const handleDelete = async () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
     try {
       if (image) {
         const formData = new FormData();
@@ -168,6 +167,7 @@ const handleDelete = async () => {
       setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
       setImage(null);
       setImagePreview(null);
+
       fetchProducts(page);
     } catch (error) {
       console.error(error);
@@ -181,350 +181,298 @@ const handleDelete = async () => {
     }
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.product_id?.toString().includes(searchQuery)
+  const filteredProducts = products.filter(
+    (p) =>
+      p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.product_id?.toString().includes(searchQuery),
   );
 
-  const getStockBadge = (stock) => {
-    if (stock <= 0) return <Badge variant="destructive">Out of Stock</Badge>;
-    if (stock <= 5) return <Badge variant="warning">Low Stock ({stock})</Badge>;
-    return <Badge variant="success">{stock} In Stock</Badge>;
+  const getStockChip = (stock) => {
+    if (stock <= 0) return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">OUT OF STOCK</span>;
+    if (stock <= 5) return <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">LOW STOCK ({stock})</span>;
+    return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">IN STOCK ({stock})</span>;
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-16 font-mono-tech">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Products Catalog</h2>
-            <p className="text-xs text-[#64748B] mt-0.5">Manage catalog items, prices, and inventory stock</p>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">GLOBAL CATALOG MANAGEMENT</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              PLATFORM PRODUCTS & SLOTS
+            </h1>
           </div>
 
-          <Button
-            onClick={() => setShowModal(true)}
-            variant="primary"
-            className="gap-2 shadow-2xs"
+          <button
+            onClick={() => {
+              setEditProduct(null);
+              setForm({ product_name: "", description: "", price: "", stock: "", category_id: "1" });
+              setImage(null);
+              setImagePreview(null);
+              setShowModal(true);
+            }}
+            className="px-5 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            <span>Add Product</span>
-          </Button>
+            <span>ADD NEW PRODUCT</span>
+          </button>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-            <Input
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products by name or ID..."
-              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
+              placeholder="SEARCH PRODUCTS BY NAME OR ID..."
+              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
             />
           </div>
-          <span className="text-xs font-semibold text-[#64748B] pr-2 hidden sm:inline">
-            Showing {filteredProducts.length} items
+          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
+            TOTAL PRODUCTS: <strong className="text-white">{filteredProducts.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-md" />
-              ))}
-            </div>
+            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING GLOBAL CATALOGUE...</div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <Package className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Products Found</h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto mb-4">
-                {searchQuery ? "No products match your search query." : "Click Add Product to list your first catalog item."}
-              </p>
-              {!searchQuery && (
-                <Button size="sm" variant="primary" onClick={() => setShowModal(true)}>
-                  Add Product
-                </Button>
-              )}
+            <div className="p-16 text-center space-y-4">
+              <Package className="h-10 w-10 text-[#6c697b] mx-auto" />
+              <h3 className="text-base font-bold uppercase text-white">NO PRODUCTS FOUND</h3>
+              <p className="text-xs text-[#6c697b]">No products match your current search query.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.product_id}>
-                    <TableCell className="font-mono text-xs font-semibold text-[#475569]">
-                      #{product.product_id}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] overflow-hidden shrink-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                    <th className="p-4 font-bold">IMAGE</th>
+                    <th className="p-4 font-bold">PRODUCT NAME & ID</th>
+                    <th className="p-4 font-bold">PRICE</th>
+                    <th className="p-4 font-bold">STOCK</th>
+                    <th className="p-4 font-bold text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#282630]">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.product_id} className="hover:bg-[#1c1b22] text-white">
+                      <td className="p-4">
+                        <div className="h-12 w-12 bg-[#0f0e13] border border-[#282630] overflow-hidden flex items-center justify-center">
                           {product.image_url ? (
-                            <img
-                              src={product.image_url}
-                              alt={product.product_name}
-                              className="h-full w-full object-cover"
-                            />
+                            <img src={product.image_url} alt={product.product_name} className="h-full w-full object-cover" />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-[#64748B]">
-                              <ImageIcon className="h-4 w-4" />
-                            </div>
+                            <ImageIcon className="h-5 w-5 text-[#6c697b]" />
                           )}
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          {product.product_name}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono text-xs">
-                        Category #{product.category_id}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="font-extrabold text-[#0F172A]">
-                      ${parseFloat(product.price).toFixed(2)}
-                    </TableCell>
-
-                    <TableCell>{getStockBadge(product.stock)}</TableCell>
-
-                    <TableCell className="text-right">
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        }
-                      >
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditProduct(product);
-                            setForm({
-                              product_name: product.product_name,
-                              description: product.description || "",
-                              price: product.price,
-                              stock: product.stock,
-                              category_id: product.category_id,
-                            });
-                            setImagePreview(product.image_url);
-                            setShowModal(true);
-                          }}
-                        >
-                          <Pencil className="h-3.5 w-3.5 mr-2" />
-                          Edit Product
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem destructive onClick={() => setDeleteId(product.product_id)}>
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />
-                          Delete Product
-                        </DropdownMenuItem>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td className="p-4">
+                        <div className="font-bold text-white uppercase">{product.product_name}</div>
+                        <div className="text-[10px] text-[#d4a373]">SLOT #FW-00{product.product_id}</div>
+                      </td>
+                      <td className="p-4 font-bold text-white">
+                        ${parseFloat(product.price).toFixed(2)} USD
+                      </td>
+                      <td className="p-4">
+                        {getStockChip(product.stock)}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setEditProduct(product);
+                              setForm({
+                                product_name: product.product_name,
+                                description: product.description || "",
+                                price: product.price,
+                                stock: product.stock,
+                                category_id: product.category_id || "1",
+                              });
+                              setImage(null);
+                              setImagePreview(product.image_url);
+                              setShowModal(true);
+                            }}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
+                            title="Edit"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(product.product_id)}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
-              <span className="text-xs text-[#64748B] font-medium">
-                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="h-8 text-xs"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="h-8 text-xs"
-                >
-                  Next
-                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
-              </div>
+            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                PREVIOUS
+              </button>
+              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                NEXT
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Add / Edit Product Modal */}
-      <Dialog
-        open={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setEditProduct(null);
-          setForm({ product_name: "", description: "", price: "", stock: "", category_id: "" });
-          setImage(null);
-          setImagePreview(null);
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>{editProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-          <DialogDescription>
-            {editProduct ? "Update catalog product details." : "Enter product details to create a catalog entry."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={editProduct ? handleUpdate : handleSubmit} className="space-y-4 my-2">
-          <div>
-            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-              Product Name
-            </label>
-            <Input
-              type="text"
-              value={form.product_name}
-              onChange={(e) => setForm({ ...form, product_name: e.target.value })}
-              placeholder="e.g. Wireless Mouse"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-              Description
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              className="flex w-full rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-xs shadow-2xs placeholder:text-[#94A3B8] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
-              placeholder="Brief description of product features..."
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+      {/* Add / Edit Modal */}
+      <Dialog open={showModal} onClose={() => setShowModal(false)}>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full font-mono-tech text-xs">
+          <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
             <div>
-              <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-                Price ($)
-              </label>
-              <Input
-                type="number"
-                step="0.01"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                placeholder="29.99"
+              <DialogTitle className="text-lg uppercase font-bold text-white">
+                {editProduct ? "EDIT GLOBAL CATALOG ITEM" : "ADD NEW CATALOG ITEM"}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-[#a19fad]">
+                Update product properties or add a new piece to Furniture Waley.
+              </DialogDescription>
+            </div>
+            <button onClick={() => setShowModal(false)} className="p-1 text-[#6c697b] hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </DialogHeader>
+
+          <form onSubmit={editProduct ? handleUpdate : handleSubmit} className="space-y-4 my-6">
+            <div>
+              <label className="block uppercase text-[#a19fad] mb-1">PRODUCT NAME*</label>
+              <input
+                type="text"
+                value={form.product_name}
+                onChange={(e) => setForm({ ...form, product_name: e.target.value })}
                 required
+                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-                Stock Quantity
-              </label>
-              <Input
-                type="number"
-                value={form.stock}
-                onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                placeholder="100"
-                required
+              <label className="block uppercase text-[#a19fad] mb-1">DESCRIPTION</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-              Category ID
-            </label>
-            <Input
-              type="number"
-              value={form.category_id}
-              onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-              placeholder="1"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-              Product Image {editProduct && "(Leave blank to keep existing)"}
-            </label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              required={!editProduct}
-            />
-            {imagePreview && (
-              <div className="mt-2 relative h-28 w-full rounded-md overflow-hidden border border-[#E2E8F0]">
-                <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block uppercase text-[#a19fad] mb-1">PRICE (USD)*</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  required
+                  className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                />
               </div>
-            )}
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowModal(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={submitting}
-              className="flex-1 gap-2"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Uploading...</span>
-                </>
-              ) : (
-                <span>Create Product</span>
+              <div>
+                <label className="block uppercase text-[#a19fad] mb-1">STOCK UNITS*</label>
+                <input
+                  type="number"
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                  required
+                  className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block uppercase text-[#a19fad] mb-1">CATEGORY ID*</label>
+              <input
+                type="text"
+                value={form.category_id}
+                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                placeholder="1 (Furniture), 2 (Lighting), etc."
+                required
+                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+              />
+            </div>
+
+            <div>
+              <label className="block uppercase text-[#a19fad] mb-1">PRODUCT IMAGE FILE</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full bg-[#0f0e13] border border-[#282630] p-2 text-xs text-white"
+              />
+              {imagePreview && (
+                <div className="mt-2 h-20 w-20 bg-[#0f0e13] border border-[#282630] overflow-hidden">
+                  <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
+                </div>
               )}
-            </Button>
-          </div>
-        </form>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="flex-1 py-2.5 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech text-white uppercase"
+              >
+                CANCEL
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+              >
+                {submitting ? "SAVING..." : editProduct ? "UPDATE PRODUCT" : "CREATE PRODUCT"}
+              </button>
+            </div>
+          </form>
+        </div>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-[#DC2626] font-semibold text-sm">
-            <AlertCircle className="h-5 w-5" />
-            <span>Confirm Delete</span>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
+          <h3 className="text-base font-bold uppercase text-white">CONFIRM DELETION</h3>
+          <p className="text-xs text-[#a19fad]">
+            Are you sure you want to remove Product #{deleteId}? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+            >
+              DELETE
+            </button>
           </div>
-          <DialogTitle className="mt-1">Delete Product #{deleteId}?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. The product will be removed permanently.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
-            Delete Product
-          </Button>
         </div>
       </Dialog>
     </AdminLayout>

@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import CustomerLayout from "../../components/CustomerLayout";
 import api from "../../api/axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Heart, Trash2, Eye, ShoppingBag, Image as ImageIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function Wishlist() {
@@ -50,7 +47,6 @@ export default function Wishlist() {
     const itemId = product.wishlist_item_id || product.item_id;
 
     try {
-      // Optimistic state update without page reload
       setProducts((prev) => prev.filter((p) => p.product_id !== productId));
 
       const wishlistRes = await api.get(`/wishlist/my`);
@@ -79,11 +75,11 @@ export default function Wishlist() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-40 rounded-lg" />
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 w-40 bg-[#16151a]" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-64 w-full rounded-2xl" />
+              <div key={i} className="h-64 bg-[#16151a] border border-[#282630]" />
             ))}
           </div>
         </div>
@@ -93,85 +89,86 @@ export default function Wishlist() {
 
   return (
     <CustomerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Saved Wishlist</h1>
-          <p className="text-xs text-slate-500 mt-1">Your saved products for future purchase</p>
+      <div className="space-y-8 pb-16">
+        {/* Header Banner */}
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">SAVED ALLOCATIONS</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              SAVED WISHLIST ({products.length})
+            </h1>
+          </div>
+          <button
+            onClick={() => navigate("/home")}
+            className="px-4 py-2 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373]"
+          >
+            EXPLORE MARKETPLACE
+          </button>
         </div>
 
         {products.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-2xs max-w-md mx-auto">
-            <div className="h-16 w-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-8 w-8" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">Your Wishlist is Empty</h2>
-            <p className="text-xs text-slate-500 mt-1 mb-6">Explore products and save your favorite items here.</p>
-            <Button onClick={() => navigate("/home")} variant="primary" className="gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              <span>Browse Products</span>
-            </Button>
+          <div className="border border-[#282630] bg-[#16151a] p-16 text-center space-y-4 max-w-md mx-auto my-12">
+            <Heart className="h-12 w-12 text-[#6c697b] mx-auto" />
+            <h2 className="text-xl font-mono-tech uppercase font-bold text-white">YOUR WISHLIST IS EMPTY</h2>
+            <p className="text-xs font-mono-tech text-[#6c697b]">Browse products and save your favorite furniture pieces.</p>
+            <button
+              onClick={() => navigate("/home")}
+              className="px-6 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+            >
+              BROWSE PRODUCTS
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <Card
+              <div
                 key={product.product_id}
-                className="group h-full flex flex-col justify-between overflow-hidden border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-300 rounded-2xl"
+                className="group bg-[#16151a] border border-[#282630] hover:border-white transition-all flex flex-col justify-between overflow-hidden"
               >
-                {/* Product Image */}
-                <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+                <div className="relative h-56 bg-[#0f0e13] border-b border-[#282630] overflow-hidden">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
                       alt={product.product_name}
-                      loading="lazy"
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="h-full w-full flex items-center justify-center text-slate-400">
-                      <ImageIcon className="h-10 w-10" />
+                    <div className="h-full w-full flex items-center justify-center text-[#6c697b]">
+                      <ImageIcon className="h-8 w-8" />
                     </div>
                   )}
+
+                  <button
+                    onClick={() => handleRemoveFromWishlist(product)}
+                    className="absolute top-3 right-3 p-2 bg-[#0f0e13]/80 border border-[#282630] text-[#6c697b] hover:text-red-400 hover:border-red-400 transition-colors"
+                    title="Remove item"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
 
-                {/* Product Info */}
-                <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div className="p-5 space-y-4 font-mono-tech flex-1 flex flex-col justify-between">
                   <div className="space-y-1.5">
-                    <h3 className="font-semibold text-slate-900 text-base leading-snug line-clamp-1">
-                      {product.product_name}
-                    </h3>
-                    {product.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-normal">
-                        {product.description}
-                      </p>
-                    )}
-                    <p className="text-xl font-extrabold text-blue-600 tracking-tight pt-1">
-                      ${parseFloat(product.price).toFixed(2)}
+                    <span className="text-[10px] text-[#d4a373] uppercase tracking-widest block">
+                      SLOT #FW-00{product.product_id}
+                    </span>
+                    <h3 className="text-sm font-bold uppercase text-white line-clamp-1">{product.product_name}</h3>
+                    <p className="text-base font-bold text-white pt-1">
+                      ${parseFloat(product.price).toFixed(2)} USD
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100 mt-auto">
-                    <Button
-                      variant="primary"
-                      size="sm"
+                  <div className="pt-4 border-t border-[#282630] mt-auto">
+                    <button
                       onClick={() => navigate(`/product/${product.product_id}`)}
-                      className="flex-1 gap-1.5 text-xs h-9"
+                      className="w-full py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      <span>View</span>
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveFromWishlist(product)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-9 px-3"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <span>VIEW PIECE</span>
+                    </button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}

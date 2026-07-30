@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { LifeBuoy, Search, Trash2, Eye, ChevronLeft, ChevronRight, AlertCircle, MoreVertical, Edit3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { LifeBuoy, Search, Trash2, Eye, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function SupportTicket() {
@@ -84,13 +78,13 @@ export default function SupportTicket() {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusChip = (status) => {
     const s = status?.toLowerCase();
     switch (s) {
       case "resolved":
-      case "closed": return <Badge variant="success">{status}</Badge>;
-      case "in-progress": return <Badge variant="warning">In Progress</Badge>;
-      default: return <Badge variant="info">{status}</Badge>;
+      case "closed": return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">{status}</span>;
+      case "in-progress": return <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">IN PROGRESS</span>;
+      default: return <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[10px] uppercase font-bold">{status || "OPEN"}</span>;
     }
   };
 
@@ -102,205 +96,186 @@ export default function SupportTicket() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-16 font-mono-tech">
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Support Ticket Queue</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Manage customer support inquiries and update ticket statuses</p>
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">CONCIERGE & SUPPORT SYSTEM</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              SUPPORT TICKET QUEUE
+            </h1>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-            <Input
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tickets by Subject, Ticket ID, or User ID..."
-              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
+              placeholder="SEARCH SUBJECT, TICKET ID, OR USER ID..."
+              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
             />
           </div>
-          <span className="text-xs font-semibold text-[#64748B] pr-2 hidden sm:inline">
-            Showing {filteredTickets.length} tickets
+          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
+            TOTAL TICKETS: <strong className="text-white">{filteredTickets.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-md" />
-              ))}
-            </div>
+            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING SUPPORT QUEUE...</div>
           ) : filteredTickets.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <LifeBuoy className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Support Tickets Found</h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-                No tickets match your search parameters.
-              </p>
+            <div className="p-16 text-center space-y-4">
+              <LifeBuoy className="h-10 w-10 text-[#6c697b] mx-auto" />
+              <h3 className="text-base font-bold uppercase text-white">NO TICKETS FOUND</h3>
+              <p className="text-xs text-[#6c697b]">No support tickets match your search parameters.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ticket ID</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTickets.map((ticket) => (
-                  <TableRow key={ticket.ticket_id}>
-                    <TableCell className="font-mono text-xs font-bold text-[#0F172A]">
-                      #{ticket.ticket_id}
-                    </TableCell>
-
-                    <TableCell className="font-semibold text-[#0F172A] text-xs max-w-[200px] truncate">
-                      {ticket.subject}
-                    </TableCell>
-
-                    <TableCell className="font-mono text-xs text-[#475569]">
-                      User #{ticket.user_id}
-                    </TableCell>
-
-                    <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-
-                    <TableCell className="text-xs text-[#64748B]">
-                      {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : "N/A"}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        }
-                      >
-                        <DropdownMenuItem onClick={() => setSelectedTicket(ticket)}>
-                          <Eye className="h-3.5 w-3.5 mr-2 text-[#2563EB]" />
-                          View Ticket
-                        </DropdownMenuItem>
-                        <DropdownMenuItem destructive onClick={() => setDeleteId(ticket.ticket_id)}>
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />
-                          Delete Ticket
-                        </DropdownMenuItem>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                    <th className="p-4 font-bold">TICKET ID</th>
+                    <th className="p-4 font-bold">SUBJECT</th>
+                    <th className="p-4 font-bold">USER ID</th>
+                    <th className="p-4 font-bold">STATUS</th>
+                    <th className="p-4 font-bold">CREATED DATE</th>
+                    <th className="p-4 font-bold text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#282630]">
+                  {filteredTickets.map((ticket) => (
+                    <tr key={ticket.ticket_id} className="hover:bg-[#1c1b22] text-white">
+                      <td className="p-4 font-bold text-[#d4a373]">#{ticket.ticket_id}</td>
+                      <td className="p-4 font-bold uppercase truncate max-w-[240px]">{ticket.subject}</td>
+                      <td className="p-4 text-[#a19fad]">User #{ticket.user_id}</td>
+                      <td className="p-4">{getStatusChip(ticket.status)}</td>
+                      <td className="p-4 text-[#6c697b]">
+                        {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : "N/A"}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedTicket(ticket)}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
+                            title="View / Resolve"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(ticket.ticket_id)}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
-              <span className="text-xs text-[#64748B] font-medium">
-                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="h-8 text-xs"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="h-8 text-xs"
-                >
-                  Next
-                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
-              </div>
+            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                PREVIOUS
+              </button>
+              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                NEXT
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Ticket Details & Status Modal */}
+      {/* Ticket Details & Update Modal */}
       <Dialog open={!!selectedTicket} onClose={() => setSelectedTicket(null)}>
-        <DialogHeader>
-          <DialogTitle>Support Ticket Details</DialogTitle>
-          <DialogDescription>Ticket #{selectedTicket?.ticket_id}</DialogDescription>
-        </DialogHeader>
-
         {selectedTicket && (
-          <div className="space-y-4 my-2 text-sm">
-            <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-[#64748B]">User ID:</span>
-                <span className="font-mono text-xs font-bold text-[#0F172A]">User #{selectedTicket.user_id}</span>
+          <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full font-mono-tech text-xs space-y-4">
+            <DialogHeader className="pb-2 border-b border-[#282630] flex flex-row items-center justify-between">
+              <DialogTitle className="text-base uppercase font-bold text-white">SUPPORT TICKET #{selectedTicket.ticket_id}</DialogTitle>
+              <button onClick={() => setSelectedTicket(null)} className="p-1 text-[#6c697b] hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </DialogHeader>
+
+            <div className="space-y-3 p-4 bg-[#0f0e13] border border-[#282630]">
+              <div className="flex justify-between">
+                <span className="text-[#6c697b]">USER ID:</span>
+                <span className="text-white font-bold">User #{selectedTicket.user_id}</span>
               </div>
               <div>
-                <span className="text-xs font-semibold text-[#64748B]">Subject:</span>
-                <p className="font-bold text-[#0F172A] mt-0.5">{selectedTicket.subject}</p>
+                <span className="text-[#6c697b]">SUBJECT:</span>
+                <p className="font-bold text-white uppercase mt-0.5">{selectedTicket.subject}</p>
               </div>
               <div>
-                <span className="text-xs font-semibold text-[#64748B]">Description:</span>
-                <p className="text-xs text-[#475569] mt-0.5 whitespace-pre-wrap leading-relaxed">{selectedTicket.body}</p>
+                <span className="text-[#6c697b]">MESSAGE BODY:</span>
+                <p className="text-xs text-[#a19fad] mt-1 whitespace-pre-wrap leading-relaxed">{selectedTicket.body}</p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-                Update Status
-              </label>
+            <div className="pt-2 space-y-2">
+              <label className="block text-[#a19fad] uppercase">UPDATE TICKET STATUS:</label>
               <select
                 defaultValue={selectedTicket.status}
                 onChange={(e) => handleStatusUpdate(selectedTicket.ticket_id, e.target.value)}
-                className="w-full h-9 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium focus:ring-1 focus:ring-[#2563EB]"
+                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373] uppercase"
               >
-                <option value="open">Open</option>
-                <option value="in-progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-                <option value="closed">Closed</option>
+                <option value="open">OPEN</option>
+                <option value="in-progress">IN PROGRESS</option>
+                <option value="resolved">RESOLVED</option>
+                <option value="closed">CLOSED</option>
               </select>
             </div>
 
-            <div className="pt-2">
-              <Button variant="outline" onClick={() => setSelectedTicket(null)} className="w-full">
-                Close
-              </Button>
-            </div>
+            <button
+              onClick={() => setSelectedTicket(null)}
+              className="w-full py-2.5 border border-[#282630] bg-[#0f0e13] text-xs uppercase text-white hover:border-white"
+            >
+              CLOSE
+            </button>
           </div>
         )}
       </Dialog>
 
-      {/* Delete Ticket Dialog */}
+      {/* Delete Ticket Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-[#DC2626] font-semibold text-sm">
-            <AlertCircle className="h-5 w-5" />
-            <span>Confirm Ticket Removal</span>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
+          <h3 className="text-base font-bold uppercase text-white">CONFIRM TICKET REMOVAL</h3>
+          <p className="text-xs text-[#a19fad]">
+            Are you sure you want to delete Ticket #{deleteId}? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+            >
+              DELETE TICKET
+            </button>
           </div>
-          <DialogTitle className="mt-1">Delete Ticket #{deleteId}?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. The ticket will be permanently deleted.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
-            Delete Ticket
-          </Button>
         </div>
       </Dialog>
     </AdminLayout>

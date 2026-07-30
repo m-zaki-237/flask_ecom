@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { Users as UsersIcon, Search, Trash2, AlertCircle, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Users as UsersIcon, Search, Trash2, X } from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 const Users = () => {
@@ -65,12 +59,12 @@ const Users = () => {
     return (f + l).toUpperCase();
   };
 
-  const getRoleBadge = (role) => {
+  const getRoleChip = (role) => {
     const r = role?.toLowerCase();
     switch (r) {
-      case "admin": return <Badge variant="destructive">Admin</Badge>;
-      case "seller": return <Badge variant="info">Seller</Badge>;
-      default: return <Badge variant="success">Customer</Badge>;
+      case "admin": return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">SUPER ADMIN</span>;
+      case "seller": return <span className="px-2.5 py-1 bg-[#d4a373]/20 text-[#d4a373] border border-[#d4a373]/40 text-[10px] uppercase font-bold">MERCHANT / SELLER</span>;
+      default: return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">CLIENT / BUYER</span>;
     }
   };
 
@@ -83,123 +77,116 @@ const Users = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-16 font-mono-tech">
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">User Accounts</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Directory of registered customers, sellers, and system administrators</p>
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">USER DIRECTORY</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              PLATFORM USER ACCOUNTS
+            </h1>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-            <Input
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, or user ID..."
-              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
+              placeholder="SEARCH NAME, EMAIL, OR USER ID..."
+              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
             />
           </div>
-          <span className="text-xs font-semibold text-[#64748B] pr-2 hidden sm:inline">
-            Total {filteredUsers.length} accounts
+          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
+            REGISTERED ACCOUNTS: <strong className="text-white">{filteredUsers.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-md" />
-              ))}
-            </div>
+            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING USER DIRECTORY...</div>
           ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <UsersIcon className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Users Found</h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-                No user accounts match your search parameters.
-              </p>
+            <div className="p-16 text-center space-y-4">
+              <UsersIcon className="h-10 w-10 text-[#6c697b] mx-auto" />
+              <h3 className="text-base font-bold uppercase text-white">NO USERS FOUND</h3>
+              <p className="text-xs text-[#6c697b]">No user accounts match your search parameters.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.user_id}>
-                    <TableCell className="font-mono text-xs font-bold text-[#0F172A]">
-                      #{user.user_id}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-[#E0F2FE] text-[#0369A1] font-bold text-xs flex items-center justify-center border border-[#BAE6FD] shrink-0">
-                          {getInitials(user.first_name, user.last_name)}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                    <th className="p-4 font-bold">USER ID</th>
+                    <th className="p-4 font-bold">NAME</th>
+                    <th className="p-4 font-bold">EMAIL ADDRESS</th>
+                    <th className="p-4 font-bold">ROLE</th>
+                    <th className="p-4 font-bold text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#282630]">
+                  {filteredUsers.map((u) => (
+                    <tr key={u.user_id} className="hover:bg-[#1c1b22] text-white">
+                      <td className="p-4 font-bold text-[#d4a373]">#{u.user_id}</td>
+                      <td className="p-4 font-bold uppercase">
+                        <div className="flex items-center gap-3">
+                          <div className="h-7 w-7 bg-[#282630] border border-[#d4a373] text-[#d4a373] font-bold text-[10px] flex items-center justify-center">
+                            {getInitials(u.first_name, u.last_name)}
+                          </div>
+                          <span>{u.first_name} {u.last_name}</span>
                         </div>
-                        <span className="font-semibold text-[#0F172A] text-sm">
-                          {user.first_name} {user.last_name}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="text-xs text-[#475569]">
-                      {user.email}
-                    </TableCell>
-
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-
-                    <TableCell className="text-right">
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        }
-                      >
-                        <DropdownMenuItem destructive onClick={() => setDeleteId(user.user_id)}>
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />
-                          Delete User
-                        </DropdownMenuItem>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td className="p-4 text-[#a19fad]">{u.email}</td>
+                      <td className="p-4">{getRoleChip(u.role)}</td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => setDeleteId(u.user_id)}
+                          className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
+                          title="Delete User"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Delete User Dialog */}
+      {/* Delete User Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-[#DC2626] font-semibold text-sm">
-            <AlertCircle className="h-5 w-5" />
-            <span>Confirm Account Removal</span>
-          </div>
-          <DialogTitle className="mt-1">Delete User Account #{deleteId}?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. The user account will be permanently removed.
-          </DialogDescription>
-        </DialogHeader>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
+          <DialogHeader className="pb-2 border-b border-[#282630] flex flex-row items-center justify-between">
+            <DialogTitle className="text-base uppercase font-bold text-white">CONFIRM ACCOUNT REMOVAL</DialogTitle>
+            <button onClick={() => setDeleteId(null)} className="p-1 text-[#6c697b] hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </DialogHeader>
 
-        <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
-            Delete User Account
-          </Button>
+          <p className="text-xs text-[#a19fad]">
+            Are you sure you want to delete User Account #{deleteId}? This action cannot be undone.
+          </p>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+            >
+              DELETE ACCOUNT
+            </button>
+          </div>
         </div>
       </Dialog>
     </AdminLayout>

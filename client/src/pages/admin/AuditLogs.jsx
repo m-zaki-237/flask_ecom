@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { FileText, Search, Eye, ChevronLeft, ChevronRight, Filter, X, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { FileText, Search, Eye, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function AuditLogs() {
@@ -59,147 +53,126 @@ export default function AuditLogs() {
     setPage(1);
   };
 
-  const getActionBadge = (action) => {
+  const getActionChip = (action) => {
     const act = action?.toUpperCase();
-    if (act?.includes("CREATE")) return <Badge variant="success">CREATE</Badge>;
-    if (act?.includes("UPDATE")) return <Badge variant="info">UPDATE</Badge>;
-    if (act?.includes("DELETE")) return <Badge variant="destructive">DELETE</Badge>;
-    if (act?.includes("LOGIN") || act?.includes("LOGOUT")) return <Badge variant="purple">{act}</Badge>;
-    return <Badge variant="outline">{action}</Badge>;
+    if (act?.includes("CREATE")) return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">CREATE</span>;
+    if (act?.includes("UPDATE")) return <span className="px-2.5 py-1 bg-[#d4a373]/20 text-[#d4a373] border border-[#d4a373]/40 text-[10px] uppercase font-bold">UPDATE</span>;
+    if (act?.includes("DELETE")) return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">DELETE</span>;
+    return <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[10px] uppercase font-bold">{action}</span>;
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-16 font-mono-tech">
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Security Audit Logs</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Immutable record of system actions, mutations, and user activities</p>
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">SECURITY & IMMUTABLE RECORDS</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              SYSTEM AUDIT LOGS
+            </h1>
+          </div>
         </div>
 
         {/* Filter Bar */}
-        <form onSubmit={handleApplyFilter} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-            <Input
-              type="text"
-              value={filterUser}
-              onChange={(e) => setFilterUser(e.target.value)}
-              placeholder="Filter by User ID (e.g. 5)..."
-              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
-            />
+        <form onSubmit={handleApplyFilter} className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-80">
+              <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+              <input
+                type="text"
+                value={filterUser}
+                onChange={(e) => setFilterUser(e.target.value)}
+                placeholder="FILTER BY USER ID..."
+                className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2.5 bg-white text-black font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+            >
+              FILTER
+            </button>
+            {activeFilterUser && (
+              <button
+                type="button"
+                onClick={handleClearFilter}
+                className="px-3 py-2.5 border border-[#282630] bg-[#0f0e13] text-xs text-[#6c697b] hover:text-white uppercase"
+              >
+                CLEAR
+              </button>
+            )}
           </div>
-
-          <Button type="submit" variant="primary" size="sm" className="gap-1.5 text-xs h-8">
-            <Filter className="h-3.5 w-3.5" />
-            Filter
-          </Button>
-
-          {activeFilterUser && (
-            <Button type="button" variant="outline" size="sm" onClick={handleClearFilter} className="gap-1 text-xs h-8">
-              <X className="h-3.5 w-3.5" />
-              Clear
-            </Button>
-          )}
+          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
+            AUDIT RECORDS: <strong className="text-white">{logs.length}</strong>
+          </span>
         </form>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-md" />
-              ))}
-            </div>
+            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING AUDIT TRAIL...</div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <FileText className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Audit Logs Found</h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-                {activeFilterUser ? `No logs found for User #${activeFilterUser}.` : "No system events recorded."}
-              </p>
+            <div className="p-16 text-center space-y-4">
+              <FileText className="h-10 w-10 text-[#6c697b] mx-auto" />
+              <h3 className="text-base font-bold uppercase text-white">NO LOGS FOUND</h3>
+              <p className="text-xs text-[#6c697b]">No audit logs recorded for this parameter.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Log ID</TableHead>
-                  <TableHead>User ID</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Target Entity</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map((log) => (
-                  <TableRow key={log.log_id}>
-                    <TableCell className="font-mono text-xs font-bold text-[#0F172A]">
-                      #{log.log_id}
-                    </TableCell>
-
-                    <TableCell className="font-mono text-xs text-[#475569]">
-                      User #{log.user_id}
-                    </TableCell>
-
-                    <TableCell>{getActionBadge(log.action)}</TableCell>
-
-                    <TableCell className="text-xs font-mono text-[#475569]">
-                      {log.table_name || "System"} {log.record_id ? `#${log.record_id}` : ""}
-                    </TableCell>
-
-                    <TableCell className="text-xs text-[#64748B]">
-                      {log.created_at ? new Date(log.created_at).toLocaleString() : "N/A"}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        }
-                      >
-                        <DropdownMenuItem onClick={() => setSelectedLog(log)}>
-                          <Eye className="h-3.5 w-3.5 mr-2 text-[#2563EB]" />
-                          View Log Details
-                        </DropdownMenuItem>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                    <th className="p-4 font-bold">LOG ID</th>
+                    <th className="p-4 font-bold">USER ID</th>
+                    <th className="p-4 font-bold">ACTION PERFORMED</th>
+                    <th className="p-4 font-bold">TIMESTAMP</th>
+                    <th className="p-4 font-bold text-right">DETAILS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#282630]">
+                  {logs.map((log) => (
+                    <tr key={log.log_id} className="hover:bg-[#1c1b22] text-white">
+                      <td className="p-4 font-bold text-[#d4a373]">#{log.log_id}</td>
+                      <td className="p-4 text-[#a19fad]">User #{log.user_id}</td>
+                      <td className="p-4 font-bold">{getActionChip(log.action)}</td>
+                      <td className="p-4 text-[#6c697b]">
+                        {log.timestamp ? new Date(log.timestamp).toLocaleString() : "N/A"}
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => setSelectedLog(log)}
+                          className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
+                          title="View Details"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
-              <span className="text-xs text-[#64748B] font-medium">
-                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="h-8 text-xs"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="h-8 text-xs"
-                >
-                  Next
-                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
-              </div>
+            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                PREVIOUS
+              </button>
+              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                NEXT
+              </button>
             </div>
           )}
         </div>
@@ -207,46 +180,46 @@ export default function AuditLogs() {
 
       {/* Log Details Modal */}
       <Dialog open={!!selectedLog} onClose={() => setSelectedLog(null)}>
-        <DialogHeader>
-          <DialogTitle>Audit Log Details</DialogTitle>
-          <DialogDescription>Log Event #{selectedLog?.log_id}</DialogDescription>
-        </DialogHeader>
-
         {selectedLog && (
-          <div className="space-y-4 my-2 text-xs">
-            <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-2 font-mono">
+          <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full font-mono-tech text-xs space-y-4">
+            <DialogHeader className="pb-2 border-b border-[#282630] flex flex-row items-center justify-between">
+              <DialogTitle className="text-base uppercase font-bold text-white">SECURITY AUDIT ENTRY #{selectedLog.log_id}</DialogTitle>
+              <button onClick={() => setSelectedLog(null)} className="p-1 text-[#6c697b] hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </DialogHeader>
+
+            <div className="space-y-3 p-4 bg-[#0f0e13] border border-[#282630]">
               <div className="flex justify-between">
-                <span className="text-[#64748B]">User ID:</span>
-                <span className="font-bold text-[#0F172A]">#{selectedLog.user_id}</span>
+                <span className="text-[#6c697b]">USER ID:</span>
+                <span className="text-white font-bold">User #{selectedLog.user_id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#64748B]">Action:</span>
-                <span className="font-bold text-[#2563EB]">{selectedLog.action}</span>
+                <span className="text-[#6c697b]">ACTION TYPE:</span>
+                <div>{getActionChip(selectedLog.action)}</div>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#64748B]">Entity:</span>
-                <span className="text-[#0F172A]">{selectedLog.entity_name} #{selectedLog.entity_id}</span>
+                <span className="text-[#6c697b]">TIMESTAMP:</span>
+                <span className="text-white">{selectedLog.timestamp ? new Date(selectedLog.timestamp).toLocaleString() : "N/A"}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Timestamp:</span>
-                <span className="text-[#0F172A]">{selectedLog.created_at ? new Date(selectedLog.created_at).toLocaleString() : "N/A"}</span>
-              </div>
+              {selectedLog.details && (
+                <div>
+                  <span className="text-[#6c697b]">PAYLOAD / DETAILS:</span>
+                  <pre className="mt-1 p-3 bg-[#16151a] border border-[#282630] text-[11px] text-[#d4a373] overflow-x-auto">
+                    {typeof selectedLog.details === "string"
+                      ? selectedLog.details
+                      : JSON.stringify(selectedLog.details, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
 
-            {selectedLog.details && (
-              <div>
-                <label className="block text-xs font-semibold text-[#0F172A] mb-1 font-sans">Details Payload:</label>
-                <pre className="p-3 bg-[#F1F5F9] rounded-md text-[#0F172A] font-mono overflow-x-auto whitespace-pre-wrap">
-                  {typeof selectedLog.details === "object" ? JSON.stringify(selectedLog.details, null, 2) : selectedLog.details}
-                </pre>
-              </div>
-            )}
-
-            <div className="pt-2">
-              <Button variant="outline" onClick={() => setSelectedLog(null)} className="w-full">
-                Close
-              </Button>
-            </div>
+            <button
+              onClick={() => setSelectedLog(null)}
+              className="w-full py-2.5 border border-[#282630] bg-[#0f0e13] text-xs uppercase text-white hover:border-white"
+            >
+              CLOSE
+            </button>
           </div>
         )}
       </Dialog>

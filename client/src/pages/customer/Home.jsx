@@ -14,18 +14,17 @@ import {
   Heart,
   ShoppingCart,
   Eye,
-  Truck,
-  ShieldCheck,
-  RotateCcw,
-  Headphones,
-  CheckCircle,
   Sparkles,
+  SlidersHorizontal,
+  Maximize2,
+  X,
+  CheckCircle,
+  Tag,
+  Clock,
+  Layers,
+  ArrowUpRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 
 export default function Home() {
@@ -36,7 +35,11 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [activeTab, setActiveTab] = useState("items"); // 'items' or 'activity'
+  const [stockFilter, setStockFilter] = useState("all"); // 'all', 'in_stock', 'limited'
+
+  // Quick View Modal State
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -86,7 +89,6 @@ export default function Home() {
     if (e) e.stopPropagation();
 
     if (!user || !user.user_id) {
-      // Guest cart support in localStorage
       const stored = localStorage.getItem("guest_cart");
       const guestItems = stored ? JSON.parse(stored) : [];
       const pid = product.product_id;
@@ -107,7 +109,7 @@ export default function Home() {
       }
       localStorage.setItem("guest_cart", JSON.stringify(guestItems));
       toast({
-        title: "Added to Cart",
+        title: "Added to Bag",
         description: `${product.product_name} added to your cart`,
         variant: "success",
       });
@@ -123,7 +125,7 @@ export default function Home() {
       });
 
       toast({
-        title: "Added to Cart",
+        title: "Added to Bag",
         description: `${product.product_name} added to your cart`,
         variant: "success",
       });
@@ -142,8 +144,8 @@ export default function Home() {
 
     if (!user || !user.user_id) {
       toast({
-        title: "Login Required",
-        description: "Please sign in to save items to your wishlist",
+        title: "Sign In Required",
+        description: "Please sign in to save items to your personal wishlist",
         variant: "warning",
       });
       return;
@@ -174,7 +176,7 @@ export default function Home() {
 
       toast({
         title: "Wishlist Updated",
-        description: `${product.product_name} saved to wishlist`,
+        description: `${product.product_name} saved to your wishlist`,
         variant: "success",
       });
     } catch (err) {
@@ -194,109 +196,161 @@ export default function Home() {
     }
   };
 
-  const handleNewsletterSubscribe = (e) => {
-    e.preventDefault();
-    if (!newsletterEmail || !newsletterEmail.includes("@")) {
-      toast({
-        title: "Invalid Email",
-        description: "Please enter a valid email address",
-        variant: "warning",
-      });
-      return;
-    }
-    toast({
-      title: "Subscribed Successfully!",
-      description: "Thank you for subscribing to our newsletter updates.",
-      variant: "success",
-    });
-    setNewsletterEmail("");
-  };
-
-  const getStockBadge = (stock) => {
-    if (stock <= 0) return <Badge variant="destructive">Out of Stock</Badge>;
-    if (stock <= 5) return <Badge variant="warning">Low Stock ({stock})</Badge>;
-    return <Badge variant="success">{stock} In Stock</Badge>;
-  };
+  const filteredProducts = products.filter((p) => {
+    if (stockFilter === "in_stock") return p.stock > 0;
+    if (stockFilter === "limited") return p.stock > 0 && p.stock <= 5;
+    return true;
+  });
 
   return (
     <CustomerLayout>
-      <div className="space-y-12">
-        {/* HERO BANNER SECTION */}
-        <section className="relative overflow-hidden rounded-3xl bg-slate-950 text-white p-8 sm:p-12 lg:p-16 border border-slate-800 shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/30 via-indigo-900/10 to-transparent pointer-events-none" />
-          <div className="relative z-10 max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Premium Ecommerce Collection</span>
+      <div className="space-y-12 pb-16">
+        {/* DeLorean Style Stats Bar Header */}
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#282630]">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#282630] text-[#d4a373] text-[11px] font-mono-tech uppercase tracking-widest">
+                <Sparkles className="h-3 w-3" />
+                <span>MARKETPLACE</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-display font-bold uppercase tracking-wider text-white">
+                FURNITURE WALEY RESERVATIONS & CATALOGUE
+              </h1>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-none">
-              Discover Quality Products. <br />
-              <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                Elevate Everyday Life.
-              </span>
-            </h1>
-
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-              Explore curated electronics, modern laptops, fashion apparel, and home essentials with instant shipping and 100% money-back guarantee.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <form onSubmit={handleSearchSubmit} className="flex-1 flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                  <Input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search products by name..."
-                    className="pl-10 h-10 bg-slate-900/90 border-slate-700 text-white text-xs placeholder:text-slate-500 focus-visible:ring-blue-500"
-                  />
-                </div>
-                <Button type="submit" variant="primary" className="h-10 px-5 text-xs font-semibold gap-1.5 shrink-0">
-                  <span>Search</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </form>
-            </div>
-          </div>
-        </section>
-
-        {/* CATEGORY FILTER SECTION */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Explore Categories</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Filter items by category</p>
-            </div>
-            {selectedCategory && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setPage(1);
-                }}
-                className="text-xs text-blue-600 hover:text-blue-800"
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => navigate("/cart")}
+                className="px-5 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase tracking-wider hover:bg-[#d4a373] transition-colors"
               >
-                Clear Category Filter
-              </Button>
-            )}
+                MAKE COLLECTION OFFER
+              </button>
+              <a
+                href="#catalog"
+                className="px-5 py-3 border border-[#282630] bg-[#0f0e13] text-white font-mono-tech text-xs uppercase tracking-wider hover:bg-[#282630] transition-colors flex items-center gap-2"
+              >
+                <span>EXPLORE CATALOGUE</span>
+                <ArrowRight className="h-3.5 w-3.5 text-[#d4a373]" />
+              </a>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {/* DeLorean Style Metric Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 font-mono-tech text-xs">
+            <div className="space-y-1">
+              <span className="text-[#6c697b] uppercase tracking-wider block">TOTAL VOLUME:</span>
+              <span className="text-lg font-bold text-white tracking-tight">$4,850,000 USD</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[#6c697b] uppercase tracking-wider block">UNIQUE CRAFTSMEN:</span>
+              <span className="text-lg font-bold text-white tracking-tight">1,271 CRAFTSMEN</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[#6c697b] uppercase tracking-wider block">ACTIVE PIECES:</span>
+              <span className="text-lg font-bold text-white tracking-tight">{products.length} LISTED</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[#6c697b] uppercase tracking-wider block">FLOOR PRICE:</span>
+              <span className="text-lg font-bold text-[#d4a373] tracking-tight">$450.00 USD</span>
+            </div>
+          </div>
+        </div>
+
+        {/* DeLorean Featured Hero Card Banner */}
+        <div className="relative border border-[#282630] bg-[#16151a] overflow-hidden p-8 sm:p-12">
+          <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-20 hidden lg:block pointer-events-none">
+            <img
+              src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80"
+              alt="Furniture Waley Hero"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="relative z-10 max-w-2xl space-y-4">
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">
+              BE PART OF THE BEGINNING
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-display font-bold uppercase tracking-wide text-white leading-tight">
+              MAKE AN OFFER ON OUR LOWEST AVAILABLE BUILD SLOT & SECURE YOUR PLACE IN LUXURY.
+            </h2>
+            <p className="text-xs font-mono-tech text-[#a19fad] leading-relaxed">
+              Be among the first to own the future of interior design. This exclusive furniture marketplace reserves your spot for iconic handcrafted pieces, custom upholstery, and solid timber woodwork.
+            </p>
+            <div className="pt-2 flex flex-wrap gap-4">
+              <button
+                onClick={() => navigate("/cart")}
+                className="px-6 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase tracking-wider hover:bg-[#d4a373] transition-colors"
+              >
+                MAKE AN OFFER NOW
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Toolbar & Filter Navigation Bar */}
+        <div id="catalog" className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#282630] pb-4">
+            {/* Items / Activity Tabs */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab("items")}
+                className={`px-5 py-2 text-xs font-mono-tech uppercase tracking-wider border-b-2 transition-all ${
+                  activeTab === "items"
+                    ? "text-white border-[#d4a373] bg-[#16151a]"
+                    : "text-[#6c697b] border-transparent hover:text-white"
+                }`}
+              >
+                ITEMS ({filteredProducts.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("activity")}
+                className={`px-5 py-2 text-xs font-mono-tech uppercase tracking-wider border-b-2 transition-all ${
+                  activeTab === "activity"
+                    ? "text-white border-[#d4a373] bg-[#16151a]"
+                    : "text-[#6c697b] border-transparent hover:text-white"
+                }`}
+              >
+                RECENT ACTIVITY
+              </button>
+            </div>
+
+            {/* Search Input Bar */}
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+              <div className="relative flex-1 min-w-[260px]">
+                <Search className="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-[#6c697b]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="SEARCH SLOT NUMBER OR NAME..."
+                  className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#1c1b22] border border-[#282630] text-xs font-mono-tech text-white uppercase hover:border-[#d4a373]"
+              >
+                SEARCH
+              </button>
+            </form>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-mono-tech uppercase tracking-widest text-[#6c697b] mr-2">
+              CATEGORIES:
+            </span>
             <button
               onClick={() => {
                 setSelectedCategory(null);
                 setPage(1);
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+              className={`px-3 py-1.5 text-[11px] font-mono-tech uppercase tracking-wider border transition-colors ${
                 selectedCategory === null
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                  : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-white text-black font-bold border-white"
+                  : "bg-[#16151a] text-[#a19fad] border-[#282630] hover:text-white"
               }`}
             >
-              All Products
+              ALL ITEMS
             </button>
             {categories.map((cat) => (
               <button
@@ -305,308 +359,328 @@ export default function Home() {
                   setSelectedCategory(cat.category_id);
                   setPage(1);
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                className={`px-3 py-1.5 text-[11px] font-mono-tech uppercase tracking-wider border transition-colors ${
                   selectedCategory === cat.category_id
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                    : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50"
+                    ? "bg-white text-black font-bold border-white"
+                    : "bg-[#16151a] text-[#a19fad] border-[#282630] hover:text-white"
                 }`}
               >
                 {cat.category_name}
               </button>
             ))}
           </div>
-        </section>
 
-        {/* FEATURED / PRODUCTS SECTION */}
-        <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                {selectedCategory
-                  ? categories.find((c) => c.category_id === selectedCategory)?.category_name || "Filtered Products"
-                  : "Featured & Popular Products"}
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">Top selection of verified products</p>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="space-y-3 p-4 bg-white rounded-2xl border border-slate-200">
-                  <Skeleton className="h-44 w-full rounded-xl" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-8 w-full rounded-lg" />
-                </div>
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-16 px-4 bg-white rounded-3xl border border-slate-200 shadow-2xs max-w-md mx-auto">
-              <ShoppingBag className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-slate-900">No Products Found</h3>
-              <p className="text-xs text-slate-500 mt-1 mb-4">
-                {searchQuery ? `No items matched "${searchQuery}".` : "No products available in this category."}
+          {/* Activity Tab View */}
+          {activeTab === "activity" ? (
+            <div className="border border-[#282630] bg-[#16151a] p-8 text-center space-y-4">
+              <Clock className="h-8 w-8 text-[#d4a373] mx-auto" />
+              <h3 className="text-lg font-mono-tech uppercase font-bold text-white">LIVE MARKETPLACE ACTIVITY</h3>
+              <p className="text-xs font-mono-tech text-[#6c697b] max-w-md mx-auto">
+                Real-time blockchain transactions, slot offers, and furniture reserve bids.
               </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory(null);
-                  setPage(1);
-                }}
-              >
-                Reset Catalog Filter
-              </Button>
+              <div className="space-y-3 text-left max-w-xl mx-auto pt-4">
+                {[
+                  { event: "Offer Submitted", price: "$1,450 USD", slot: "Slot #FW-108", time: "2 mins ago" },
+                  { event: "Piece Reserved", price: "$2,200 USD", slot: "Slot #FW-042", time: "14 mins ago" },
+                  { event: "Listing Created", price: "$890 USD", slot: "Slot #FW-319", time: "1 hour ago" },
+                ].map((act, idx) => (
+                  <div key={idx} className="p-3 bg-[#0f0e13] border border-[#282630] flex items-center justify-between text-xs font-mono-tech">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[#22c55e] font-bold">● {act.event}</span>
+                      <span className="text-white">{act.slot}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-[#d4a373]">{act.price}</span>
+                      <span className="text-[#6c697b]">{act.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <Card
-                  key={product.product_id}
-                  onClick={() => navigate(`/product/${product.product_id}`)}
-                  className="group cursor-pointer h-full flex flex-col justify-between overflow-hidden border border-slate-200/90 hover:border-blue-500 hover:shadow-xl transition-all duration-300 rounded-2xl bg-white"
-                >
-                  {/* Card Image Header */}
-                  <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.product_name}
-                        loading="lazy"
-                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-slate-400">
-                        <ImageIcon className="h-10 w-10" />
-                      </div>
-                    )}
-
-                    <div className="absolute top-2.5 right-2.5">
-                      {getStockBadge(product.stock)}
+            /* Items Product Grid */
+            <div>
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                    <div key={i} className="h-80 bg-[#16151a] border border-[#282630] animate-pulse p-4 flex flex-col justify-between">
+                      <div className="h-40 bg-[#282630]" />
+                      <div className="h-4 bg-[#282630] w-3/4" />
+                      <div className="h-4 bg-[#282630] w-1/2" />
                     </div>
-
-                    <button
-                      onClick={(e) => handleAddToWishlist(product, e)}
-                      className="absolute top-2.5 left-2.5 h-8 w-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-slate-600 hover:text-red-500 hover:bg-white transition-all shadow-xs"
-                      title="Save to Wishlist"
+                  ))}
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="border border-[#282630] bg-[#16151a] p-16 text-center space-y-4">
+                  <ShoppingBag className="h-10 w-10 text-[#6c697b] mx-auto" />
+                  <h3 className="text-base font-mono-tech uppercase font-bold text-white">NO BUILD SLOTS FOUND</h3>
+                  <p className="text-xs font-mono-tech text-[#6c697b]">
+                    {searchQuery ? `No furniture pieces matched "${searchQuery}".` : "No items listed in this category."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedCategory(null);
+                      setPage(1);
+                    }}
+                    className="px-4 py-2 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373]"
+                  >
+                    RESET CATALOG FILTERS
+                  </button>
+                </div>
+              ) : (
+                /* DeLorean Style Grid Cards */
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.product_id}
+                      onClick={() => navigate(`/product/${product.product_id}`)}
+                      className="group cursor-pointer bg-[#16151a] border border-[#282630] hover:border-white transition-all flex flex-col justify-between overflow-hidden"
                     >
-                      <Heart className="h-4 w-4" />
-                    </button>
-                  </div>
+                      {/* Image Preview Container */}
+                      <div className="relative h-64 bg-[#0f0e13] overflow-hidden border-b border-[#282630]">
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.product_name}
+                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-[#6c697b]">
+                            <ImageIcon className="h-8 w-8" />
+                          </div>
+                        )}
 
-                  {/* Card Body */}
-                  <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
-                        {product.category_name || "General"}
-                      </span>
-
-                      <h3 className="font-bold text-slate-900 text-sm leading-snug group-hover:text-blue-600 transition-colors line-clamp-1">
-                        {product.product_name}
-                      </h3>
-
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-normal">
-                        {product.description || "High-quality store item with top customer satisfaction ratings."}
-                      </p>
-                    </div>
-
-                    {/* Price and Actions */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2 mt-auto">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-black text-slate-900 tracking-tight">
-                          ${parseFloat(product.price).toFixed(2)}
-                        </span>
-                        <div className="flex items-center text-amber-400 text-xs font-semibold gap-0.5">
-                          <Star className="h-3.5 w-3.5 fill-amber-400" />
-                          <span className="text-slate-700">4.8</span>
+                        {/* Status Chip Badge */}
+                        <div className="absolute top-3 left-3">
+                          {product.stock > 0 ? (
+                            <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono-tech uppercase tracking-widest">
+                              LISTED
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-mono-tech uppercase tracking-widest">
+                              RESERVED
+                            </span>
+                          )}
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
+                        {/* Action Overlays */}
+                        <button
+                          onClick={(e) => handleAddToWishlist(product, e)}
+                          className="absolute top-3 right-3 p-2 bg-[#0f0e13]/80 border border-[#282630] text-[#a19fad] hover:text-red-400 hover:border-red-400 transition-colors"
+                          title="Save to Wishlist"
+                        >
+                          <Heart className="h-3.5 w-3.5" />
+                        </button>
+
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/product/${product.product_id}`);
+                            setQuickViewProduct(product);
                           }}
-                          className="flex-1 text-xs h-8 gap-1 border-slate-200"
+                          className="absolute bottom-3 right-3 p-2 bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity border border-[#282630]"
+                          title="Quick View"
                         >
-                          <Eye className="h-3.5 w-3.5" />
-                          <span>View</span>
-                        </Button>
+                          <Maximize2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
 
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={(e) => handleAddToCart(product, e)}
-                          disabled={product.stock <= 0}
-                          className="flex-1 text-xs h-8 gap-1"
-                        >
-                          <ShoppingCart className="h-3.5 w-3.5" />
-                          <span>Cart</span>
-                        </Button>
+                      {/* Card Content & Details */}
+                      <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-[10px] font-mono-tech text-[#6c697b] uppercase">
+                            <span>SLOT #FW-00{product.product_id}</span>
+                            <span className="text-[#d4a373]">{product.category_name || "FURNITURE"}</span>
+                          </div>
+
+                          <h3 className="text-sm font-mono-tech font-bold uppercase text-white line-clamp-1 group-hover:text-[#d4a373] transition-colors">
+                            {product.product_name}
+                          </h3>
+
+                          <p className="text-xs font-mono-tech text-[#6c697b] line-clamp-2 leading-relaxed">
+                            {product.description || "Bespoke handcrafted furniture piece."}
+                          </p>
+                        </div>
+
+                        {/* Price & Primary CTA */}
+                        <div className="pt-4 border-t border-[#282630] space-y-3 mt-auto">
+                          <div className="flex items-center justify-between font-mono-tech text-xs">
+                            <span className="text-[#6c697b] uppercase">CURRENT PRICE:</span>
+                            <span className="text-base font-bold text-white">${parseFloat(product.price).toFixed(2)} USD</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/product/${product.product_id}`);
+                              }}
+                              className="py-2 border border-[#282630] bg-[#0f0e13] text-[11px] font-mono-tech uppercase text-white hover:border-white transition-colors flex items-center justify-center gap-1"
+                            >
+                              <Eye className="h-3 w-3" />
+                              <span>VIEW</span>
+                            </button>
+
+                            <button
+                              onClick={(e) => handleAddToCart(product, e)}
+                              disabled={product.stock <= 0}
+                              className="py-2 bg-white text-black font-mono-tech font-bold text-[11px] uppercase tracking-wider hover:bg-[#d4a373] transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                            >
+                              <ShoppingCart className="h-3 w-3" />
+                              <span>ADD TO BAG</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  ))}
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              {!loading && totalPages > 1 && (
+                <div className="flex justify-center items-center gap-3 pt-12">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 border border-[#282630] bg-[#16151a] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373] disabled:opacity-40 flex items-center gap-1"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>PREVIOUS</span>
+                  </button>
+
+                  <span className="text-xs font-mono-tech text-[#6c697b] px-3">
+                    PAGE <span className="text-white font-bold">{page}</span> OF <span className="text-white font-bold">{totalPages}</span>
+                  </span>
+
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="px-4 py-2 border border-[#282630] bg-[#16151a] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373] disabled:opacity-40 flex items-center gap-1"
+                  >
+                    <span>NEXT</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
+        </div>
 
-          {/* Pagination Controls */}
-          {!loading && totalPages > 1 && (
-            <div className="flex justify-center items-center gap-3 pt-6">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="gap-1 text-xs h-8"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-                Previous
-              </Button>
-
-              <span className="text-xs font-semibold text-slate-600 px-2">
-                Page {page} of {totalPages}
-              </span>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="gap-1 text-xs h-8"
-              >
-                Next
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          )}
-        </section>
-
-        {/* WHY CHOOSE US / BENEFITS SECTION */}
-        <section className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 border border-slate-800 shadow-lg">
-          <div className="text-center max-w-xl mx-auto mb-8 space-y-1">
-            <h2 className="text-2xl font-extrabold tracking-tight">Why Shop With Us</h2>
-            <p className="text-xs text-slate-400">Experience world-class online shopping standard</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/50 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-                <Truck className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-sm text-white">Express Worldwide Shipping</h3>
-              <p className="text-xs text-slate-400">Fast, door-to-door delivery with real-time package tracking.</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/50 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-sm text-white">Secure Encrypted Payments</h3>
-              <p className="text-xs text-slate-400">SSL 256-bit encryption ensuring 100% safe transaction processing.</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/50 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                <RotateCcw className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-sm text-white">30-Day Money Back Guarantee</h3>
-              <p className="text-xs text-slate-400">Hassle-free return policy if you are not fully satisfied.</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/50 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                <Headphones className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-sm text-white">24/7 Customer Support</h3>
-              <p className="text-xs text-slate-400">Dedicated support team available anytime for your inquiries.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* NEWSLETTER SECTION (UI ONLY) */}
-        <section className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 sm:p-12 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-2 max-w-lg">
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Stay Updated With Exclusive Offers</h2>
-            <p className="text-blue-100 text-xs sm:text-sm">
-              Subscribe to our weekly newsletter and get early access to new arrivals and promotional sales.
+        {/* DeLorean Style Information Banner */}
+        <div className="border border-[#282630] bg-[#16151a] p-8 sm:p-12 space-y-6">
+          <div className="max-w-2xl space-y-3">
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">
+              AUTHENTICATION & GUARANTEE
+            </span>
+            <h2 className="text-2xl font-display font-bold uppercase text-white">
+              CRAFTSMANSHIP & VERIFIED ALLOCATION
+            </h2>
+            <p className="text-xs font-mono-tech text-[#a19fad] leading-relaxed">
+              Every Furniture Waley piece is stamped with a unique serial number, verified timber origin certificate, and backed by white-glove architectural delivery.
             </p>
           </div>
 
-          <form onSubmit={handleNewsletterSubscribe} className="w-full md:w-auto flex flex-col sm:flex-row gap-2.5 min-w-[320px]">
-            <Input
-              type="email"
-              value={newsletterEmail}
-              onChange={(e) => setNewsletterEmail(e.target.value)}
-              placeholder="Enter your email address"
-              className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 text-xs h-10 focus-visible:ring-white"
-              required
-            />
-            <Button type="submit" variant="secondary" className="h-10 text-xs font-bold text-blue-900 bg-white hover:bg-blue-50 shrink-0">
-              Subscribe Now
-            </Button>
-          </form>
-        </section>
-
-        {/* STORE FOOTER */}
-        <footer className="border-t border-slate-200 pt-8 pb-6 text-slate-500 text-xs space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 font-bold text-base text-blue-600">
-                <div className="h-7 w-7 rounded-md bg-blue-600 flex items-center justify-center text-white font-extrabold text-xs">
-                  <ShoppingBag className="h-4 w-4" />
-                </div>
-                <span className="text-slate-900 font-extrabold tracking-tight">Shop Store</span>
-              </div>
-              <p className="text-slate-500 leading-relaxed">
-                Your premier destination for high-quality products across electronics, apparel, and home supplies.
-              </p>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#282630] font-mono-tech text-xs">
             <div className="space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm">Quick Links</h4>
-              <ul className="space-y-1.5">
-                <li><button onClick={() => navigate("/home")} className="hover:text-blue-600">Products Catalog</button></li>
-                <li><button onClick={() => navigate("/cart")} className="hover:text-blue-600">Shopping Cart</button></li>
-                <li><button onClick={() => navigate("/wishlist")} className="hover:text-blue-600">Saved Wishlist</button></li>
-                <li><button onClick={() => navigate("/orders")} className="hover:text-blue-600">Order History</button></li>
-              </ul>
+              <span className="text-white font-bold block uppercase">1. SECURE RESERVATION</span>
+              <p className="text-[#6c697b]">Lock in your furniture slot with guaranteed priority dispatch.</p>
             </div>
-
             <div className="space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm">Customer Care</h4>
-              <ul className="space-y-1.5">
-                <li><button onClick={() => navigate("/support_tickets")} className="hover:text-blue-600">Help & Support</button></li>
-                <li><span className="text-slate-400">Shipping & Delivery Policy</span></li>
-                <li><span className="text-slate-400">Terms of Service</span></li>
-                <li><span className="text-slate-400">Privacy Policy</span></li>
-              </ul>
+              <span className="text-white font-bold block uppercase">2. BESPOKE CUSTOMIZATION</span>
+              <p className="text-[#6c697b]">Select solid wood finishes, premium upholstery fabrics, and dimensions.</p>
             </div>
-
             <div className="space-y-2">
-              <h4 className="font-bold text-slate-900 text-sm">Payment Methods</h4>
-              <p className="text-slate-500 leading-relaxed">
-                We accept Cash on Delivery, Credit Cards, Debit Cards, and Direct Bank Transfers.
-              </p>
-              <div className="flex gap-2 pt-1 text-slate-400">
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
-                <span>100% Encrypted Checkout</span>
-              </div>
+              <span className="text-white font-bold block uppercase">3. WHITE-GLOVE DISPATCH</span>
+              <p className="text-[#6c697b]">Inspected, assembled, and installed by expert furniture artisans.</p>
             </div>
           </div>
-
-          <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
-            <p>© {new Date().getFullYear()} Shop Store. All rights reserved.</p>
-            <p>Designed for Portfolio & Recruiter Demo</p>
-          </div>
-        </footer>
+        </div>
       </div>
+
+      {/* Quick View Modal */}
+      <Dialog open={!!quickViewProduct} onClose={() => setQuickViewProduct(null)}>
+        {quickViewProduct && (
+          <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-2xl w-full">
+            <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
+              <div>
+                <DialogTitle className="text-lg font-mono-tech uppercase font-bold text-white">
+                  {quickViewProduct.product_name}
+                </DialogTitle>
+                <DialogDescription className="text-xs font-mono-tech text-[#d4a373]">
+                  SLOT #FW-00{quickViewProduct.product_id} • {quickViewProduct.category_name || "FURNITURE"}
+                </DialogDescription>
+              </div>
+              <button
+                onClick={() => setQuickViewProduct(null)}
+                className="p-1 border border-[#282630] text-[#6c697b] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </DialogHeader>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
+              <div className="h-56 bg-[#0f0e13] border border-[#282630] overflow-hidden">
+                {quickViewProduct.image_url ? (
+                  <img
+                    src={quickViewProduct.image_url}
+                    alt={quickViewProduct.product_name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-[#6c697b]">
+                    <ImageIcon className="h-10 w-10" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 font-mono-tech text-xs">
+                <div>
+                  <span className="text-[#6c697b] uppercase block">DESCRIPTION:</span>
+                  <p className="text-white text-xs leading-relaxed mt-1">
+                    {quickViewProduct.description || "Handcrafted artisanal furniture piece."}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-[#282630] space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#6c697b]">PRICE:</span>
+                    <span className="text-white font-bold">${parseFloat(quickViewProduct.price).toFixed(2)} USD</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#6c697b]">AVAILABILITY:</span>
+                    <span className={quickViewProduct.stock > 0 ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+                      {quickViewProduct.stock > 0 ? `IN STOCK (${quickViewProduct.stock})` : "OUT OF STOCK"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-4 space-y-2">
+                  <button
+                    onClick={(e) => {
+                      handleAddToCart(quickViewProduct, e);
+                      setQuickViewProduct(null);
+                    }}
+                    disabled={quickViewProduct.stock <= 0}
+                    className="w-full py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+                  >
+                    ADD TO CART
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate(`/product/${quickViewProduct.product_id}`);
+                      setQuickViewProduct(null);
+                    }}
+                    className="w-full py-2.5 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white hover:border-white"
+                  >
+                    FULL DETAILS
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </CustomerLayout>
   );
 }

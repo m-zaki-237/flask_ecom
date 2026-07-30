@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { ShoppingBag, Search, Trash2, ChevronLeft, ChevronRight, AlertCircle, MoreVertical, Edit3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { ShoppingBag, Search, Trash2, ChevronLeft, ChevronRight, Edit3, X } from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function Orders() {
@@ -83,15 +77,15 @@ export default function Orders() {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusChip = (status) => {
     const s = status?.toLowerCase();
     switch (s) {
-      case "pending": return <Badge variant="warning">Pending</Badge>;
-      case "processing": return <Badge variant="info">Processing</Badge>;
-      case "shipped": return <Badge variant="purple">Shipped</Badge>;
-      case "delivered": return <Badge variant="success">Delivered</Badge>;
-      case "cancelled": return <Badge variant="destructive">Cancelled</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
+      case "pending": return <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">PENDING</span>;
+      case "processing": return <span className="px-2.5 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[10px] uppercase font-bold">PROCESSING</span>;
+      case "shipped": return <span className="px-2.5 py-1 bg-purple-500/20 text-purple-400 border border-purple-500/40 text-[10px] uppercase font-bold">SHIPPED</span>;
+      case "delivered": return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">DELIVERED</span>;
+      case "cancelled": return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">CANCELLED</span>;
+      default: return <span className="px-2.5 py-1 bg-[#282630] text-white text-[10px] uppercase font-bold">{status}</span>;
     }
   };
 
@@ -104,212 +98,185 @@ export default function Orders() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 pb-16 font-mono-tech">
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Order Management</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">Track customer orders, items, and update shipment statuses</p>
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">GLOBAL ORDERS CONTROL</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              MARKETPLACE ORDERS MANAGEMENT
+            </h1>
+          </div>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-[#E2E8F0] shadow-2xs">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-            <Input
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search orders by Order ID, Customer Name, Email, or Status..."
-              className="pl-9 border-none shadow-none focus-visible:ring-0 text-xs"
+              placeholder="SEARCH ORDER ID, BUYER, OR STATUS..."
+              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
             />
           </div>
-          <span className="text-xs font-semibold text-[#64748B] pr-2 hidden sm:inline">
-            Showing {filteredOrders.length} orders
+          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
+            SYSTEM ORDERS: <strong className="text-white">{filteredOrders.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] shadow-2xs overflow-hidden">
+        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 w-full rounded-md" />
-              ))}
-            </div>
+            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING GLOBAL ORDERS...</div>
           ) : filteredOrders.length === 0 ? (
-            <div className="text-center py-16 px-4">
-              <ShoppingBag className="h-10 w-10 text-[#64748B] mx-auto mb-2" />
-              <h3 className="font-semibold text-[#0F172A] text-sm">No Orders Found</h3>
-              <p className="text-xs text-[#64748B] mt-1 max-w-sm mx-auto">
-                No customer orders match your search parameters.
-              </p>
+            <div className="p-16 text-center space-y-4">
+              <ShoppingBag className="h-10 w-10 text-[#6c697b] mx-auto" />
+              <h3 className="text-base font-bold uppercase text-white">NO ORDERS FOUND</h3>
+              <p className="text-xs text-[#6c697b]">No orders match your search parameters.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Total Amount</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Order Status</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Created Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.order_id}>
-                    <TableCell className="font-mono text-xs font-bold text-[#0F172A]">
-                      #{order.order_id}
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-xs text-[#0F172A]">
-                          {order.customer_name || `User #${order.user_id}`}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                    <th className="p-4 font-bold">ORDER ID</th>
+                    <th className="p-4 font-bold">BUYER NAME</th>
+                    <th className="p-4 font-bold">BUYER EMAIL</th>
+                    <th className="p-4 font-bold">TOTAL AMOUNT</th>
+                    <th className="p-4 font-bold">ORDER STATUS</th>
+                    <th className="p-4 font-bold">PAYMENT</th>
+                    <th className="p-4 font-bold">DATE</th>
+                    <th className="p-4 font-bold text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#282630]">
+                  {filteredOrders.map((order) => (
+                    <tr key={order.order_id} className="hover:bg-[#1c1b22] text-white">
+                      <td className="p-4 font-bold text-[#d4a373]">#{order.order_id}</td>
+                      <td className="p-4 font-bold uppercase">{order.customer_name || `User #${order.user_id}`}</td>
+                      <td className="p-4 text-[#a19fad]">{order.customer_email || "N/A"}</td>
+                      <td className="p-4 font-bold text-white">${parseFloat(order.total_amount || 0).toFixed(2)} USD</td>
+                      <td className="p-4">{getStatusChip(order.status)}</td>
+                      <td className="p-4">
+                        <span className="px-2 py-0.5 border border-[#282630] bg-[#0f0e13] text-[#a19fad] text-[10px] uppercase">
+                          {order.payment_status || "PENDING"}
                         </span>
-                        <span className="text-[11px] text-[#64748B]">
-                          {order.customer_email || "N/A"}
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="font-extrabold text-xs text-[#2563EB]">
-                      ${parseFloat(order.total_amount || 0).toFixed(2)}
-                    </TableCell>
-
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {order.item_count || order.items?.length || 0} items
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-
-                    <TableCell>
-                      <Badge variant={order.payment_status === "completed" ? "success" : "warning"} className="capitalize text-xs">
-                        {order.payment_status || "pending"}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="text-xs text-[#64748B]">
-                      {order.created_at ? new Date(order.created_at).toLocaleDateString() : "N/A"}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-[#475569]">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        }
-                      >
-                        <DropdownMenuItem onClick={() => setStatusModalOrder(order)}>
-                          <Edit3 className="h-3.5 w-3.5 mr-2 text-[#2563EB]" />
-                          Update Status
-                        </DropdownMenuItem>
-                        <DropdownMenuItem destructive onClick={() => setDeleteId(order.order_id)}>
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />
-                          Delete Order
-                        </DropdownMenuItem>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </td>
+                      <td className="p-4 text-[#6c697b]">
+                        {order.created_at ? new Date(order.created_at).toLocaleDateString() : "N/A"}
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setStatusModalOrder(order)}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
+                            title="Update Status"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteId(order.order_id)}
+                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
+                            title="Delete Order"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
-              <span className="text-xs text-[#64748B] font-medium">
-                Page <span className="font-bold text-[#0F172A]">{page}</span> of {totalPages}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="h-8 text-xs"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="h-8 text-xs"
-                >
-                  Next
-                  <ChevronRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
-              </div>
+            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                PREVIOUS
+              </button>
+              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+              >
+                NEXT
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Update Status Modal Dialog */}
+      {/* Update Status Modal */}
       <Dialog open={!!statusModalOrder} onClose={() => setStatusModalOrder(null)}>
-        <DialogHeader>
-          <DialogTitle>Update Order Status</DialogTitle>
-          <DialogDescription>Select new status for Order #{statusModalOrder?.order_id}</DialogDescription>
-        </DialogHeader>
-
-        {statusModalOrder && (
-          <div className="space-y-4 my-2">
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
+          <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
             <div>
-              <label className="block text-xs font-semibold text-[#0F172A] mb-1">
-                Order Status
-              </label>
-              <select
-                defaultValue={statusModalOrder.status}
-                onChange={(e) => handleStatusUpdate(statusModalOrder.order_id, e.target.value)}
-                className="w-full h-9 rounded-md border border-[#CBD5E1] bg-white px-3 text-sm font-medium focus:ring-1 focus:ring-[#2563EB]"
-              >
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+              <DialogTitle className="text-lg uppercase font-bold text-white">UPDATE ORDER STATUS</DialogTitle>
+              <DialogDescription className="text-xs text-[#a19fad]">Order #{statusModalOrder?.order_id}</DialogDescription>
             </div>
+            <button onClick={() => setStatusModalOrder(null)} className="p-1 text-[#6c697b] hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </DialogHeader>
 
-            <div className="pt-2">
-              <Button variant="outline" onClick={() => setStatusModalOrder(null)} className="w-full">
-                Close
-              </Button>
+          {statusModalOrder && (
+            <div className="space-y-4 my-4">
+              <div>
+                <label className="block uppercase text-[#a19fad] mb-1">SELECT NEW STATUS:</label>
+                <select
+                  defaultValue={statusModalOrder.status}
+                  onChange={(e) => handleStatusUpdate(statusModalOrder.order_id, e.target.value)}
+                  className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373] uppercase"
+                >
+                  <option value="pending">PENDING</option>
+                  <option value="processing">PROCESSING</option>
+                  <option value="shipped">SHIPPED / DISPATCHED</option>
+                  <option value="delivered">DELIVERED</option>
+                  <option value="cancelled">CANCELLED</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() => setStatusModalOrder(null)}
+                className="w-full py-2.5 border border-[#282630] bg-[#0f0e13] text-xs uppercase text-white hover:border-white"
+              >
+                CLOSE
+              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </Dialog>
 
-      {/* Delete Order Dialog */}
+      {/* Delete Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-[#DC2626] font-semibold text-sm">
-            <AlertCircle className="h-5 w-5" />
-            <span>Confirm Order Removal</span>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
+          <h3 className="text-base font-bold uppercase text-white">CONFIRM ORDER REMOVAL</h3>
+          <p className="text-xs text-[#a19fad]">
+            Are you sure you want to delete Order #{deleteId}? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setDeleteId(null)}
+              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+            >
+              DELETE ORDER
+            </button>
           </div>
-          <DialogTitle className="mt-1">Delete Order #{deleteId}?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. The order record will be permanently deleted.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={() => setDeleteId(null)} className="flex-1">
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleDelete} className="flex-1">
-            Delete Order
-          </Button>
         </div>
       </Dialog>
     </AdminLayout>

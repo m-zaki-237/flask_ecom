@@ -3,11 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CustomerLayout from "../../components/CustomerLayout";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
-import { ShoppingCart, Trash2, Minus, Plus, CreditCard, ArrowRight, Loader2, ShieldCheck, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ShoppingCart, Trash2, Minus, Plus, CreditCard, ArrowRight, Loader2, ShieldCheck, ShoppingBag, X } from "lucide-react";
 import { Dialog, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
 export default function Cart() {
@@ -126,7 +123,6 @@ export default function Cart() {
   const handleConfirmOrder = async () => {
     setPlacing(true);
     try {
-      // 1 — create order
       const orderRes = await api.post("/orders", {
         user_id: user.user_id,
         items: items.map((item) => ({
@@ -137,7 +133,6 @@ export default function Cart() {
 
       const totalAmount = parseFloat(items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2));
 
-      // 2 — create payment
       await api.post("/payments/create", {
         order_id: orderRes.data.order_id,
         amount: totalAmount,
@@ -145,7 +140,6 @@ export default function Cart() {
         payment_status: "pending",
       });
 
-      // 3 — delete item from cart
       for (const item of items) {
         await api.delete(`/cart/${cart.cart_id}/items/${item.cart_item_id}`);
       }
@@ -181,15 +175,15 @@ export default function Cart() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-40 rounded-lg" />
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 w-48 bg-[#16151a]" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                <div key={i} className="h-28 bg-[#16151a] border border-[#282630]" />
               ))}
             </div>
-            <Skeleton className="h-64 w-full rounded-2xl" />
+            <div className="h-64 bg-[#16151a] border border-[#282630]" />
           </div>
         </div>
       </CustomerLayout>
@@ -199,16 +193,16 @@ export default function Cart() {
   if (!cart || items.length === 0) {
     return (
       <CustomerLayout>
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-2xs max-w-md mx-auto">
-          <div className="h-16 w-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
-            <ShoppingCart className="h-8 w-8" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900">Your Cart is Empty</h2>
-          <p className="text-xs text-slate-500 mt-1 mb-6">Looks like you haven't added any products to your cart yet.</p>
-          <Button onClick={() => navigate("/home")} variant="primary" className="gap-2">
-            <ShoppingBag className="h-4 w-4" />
-            <span>Start Shopping</span>
-          </Button>
+        <div className="border border-[#282630] bg-[#16151a] p-16 text-center space-y-4 max-w-md mx-auto my-12">
+          <ShoppingCart className="h-12 w-12 text-[#6c697b] mx-auto" />
+          <h2 className="text-xl font-mono-tech uppercase font-bold text-white">YOUR BAG IS EMPTY</h2>
+          <p className="text-xs font-mono-tech text-[#6c697b]">No furniture pieces or build slots added to your bag yet.</p>
+          <button
+            onClick={() => navigate("/home")}
+            className="px-6 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+          >
+            EXPLORE MARKETPLACE
+          </button>
         </div>
       </CustomerLayout>
     );
@@ -216,175 +210,201 @@ export default function Cart() {
 
   return (
     <CustomerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Shopping Cart</h1>
-          <p className="text-xs text-slate-500 mt-1">Review your selected products before proceeding to checkout</p>
+      <div className="space-y-8 pb-16">
+        {/* DeLorean Cart Header */}
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">MY ALLOCATION BAG</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              SHOPPING BAG ({calculateTotalItems()} PIECES)
+            </h1>
+          </div>
+          <button
+            onClick={() => navigate("/home")}
+            className="px-4 py-2 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373]"
+          >
+            CONTINUE SHOPPING
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Cart Items List */}
-          <div className="lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Cart Items List (8 cols) */}
+          <div className="lg:col-span-8 space-y-4">
             {items.map((item) => (
-              <Card key={item.cart_item_id} className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex-1 space-y-1">
-                  <h3 className="font-semibold text-slate-900 text-base">{item.product_name}</h3>
-                  <p className="text-sm font-extrabold text-blue-600">${parseFloat(item.price).toFixed(2)}</p>
-                </div>
-
-                <div className="flex items-center gap-4 w-full sm:w-auto justify-between">
-                  {/* Quantity Controls */}
-                  <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleUpdateQuantity(item.cart_item_id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="h-8 w-8 rounded-none hover:bg-slate-200"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-10 text-center font-bold text-xs text-slate-900">{item.quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleUpdateQuantity(item.cart_item_id, item.quantity + 1)}
-                      className="h-8 w-8 rounded-none hover:bg-slate-200"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
+              <div
+                key={item.cart_item_id || item.product_id}
+                className="border border-[#282630] bg-[#16151a] p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="h-20 w-20 bg-[#0f0e13] border border-[#282630] shrink-0 overflow-hidden flex items-center justify-center">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.product_name} className="h-full w-full object-cover" />
+                    ) : (
+                      <ShoppingCart className="h-6 w-6 text-[#6c697b]" />
+                    )}
                   </div>
 
-                  <span className="font-bold text-slate-900 text-sm min-w-[70px] text-right">
-                    ${(item.price * item.quantity).toFixed(2)}
+                  <div className="space-y-1 font-mono-tech">
+                    <span className="text-[10px] text-[#d4a373] uppercase tracking-widest block">
+                      SLOT #FW-00{item.product_id}
+                    </span>
+                    <h3 className="text-sm font-bold uppercase text-white">{item.product_name}</h3>
+                    <p className="text-xs text-[#a19fad]">
+                      PRICE PER PIECE: <strong className="text-white">${parseFloat(item.price).toFixed(2)} USD</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-[#282630]">
+                  {/* Quantity Counter */}
+                  <div className="flex items-center border border-[#282630] bg-[#0f0e13]">
+                    <button
+                      onClick={() => handleUpdateQuantity(item.cart_item_id || item.product_id, item.quantity - 1)}
+                      disabled={item.quantity <= 1}
+                      className="p-2 text-white hover:text-[#d4a373] disabled:opacity-30"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="px-4 text-xs font-mono-tech font-bold text-white">{item.quantity}</span>
+                    <button
+                      onClick={() => handleUpdateQuantity(item.cart_item_id || item.product_id, item.quantity + 1)}
+                      className="p-2 text-white hover:text-[#d4a373]"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <span className="text-sm font-mono-tech font-bold text-white">
+                    ${(item.price * item.quantity).toFixed(2)} USD
                   </span>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveItem(item.cart_item_id)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 px-2"
+                  <button
+                    onClick={() => handleRemoveItem(item.cart_item_id || item.product_id)}
+                    className="p-2 text-[#6c697b] hover:text-red-400 border border-transparent hover:border-[#282630]"
+                    title="Remove item"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </button>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
 
-          {/* Order Summary Card */}
-          <Card className="sticky top-24 p-6 space-y-6">
-            <CardHeader className="p-0 border-b border-slate-100 pb-4">
-              <CardTitle className="text-lg">Order Summary</CardTitle>
-            </CardHeader>
+          {/* Summary Column (4 cols) */}
+          <div className="lg:col-span-4 border border-[#282630] bg-[#16151a] p-6 space-y-6 font-mono-tech text-xs">
+            <h3 className="text-base font-display font-bold uppercase text-white pb-4 border-b border-[#282630]">
+              ORDER SUMMARY
+            </h3>
 
-            <CardContent className="p-0 space-y-3 text-sm">
-              <div className="flex justify-between text-slate-600">
-                <span>Items ({items.length})</span>
-                <span className="font-medium text-slate-900">{calculateTotalItems()} units</span>
+            <div className="space-y-3 text-[#a19fad]">
+              <div className="flex justify-between">
+                <span>SUBTOTAL:</span>
+                <span className="text-white font-bold">${calculateTotal()} USD</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Estimated Shipping</span>
-                <span className="font-medium text-emerald-600">FREE</span>
+              <div className="flex justify-between">
+                <span>WHITE-GLOVE DISPATCH:</span>
+                <span className="text-emerald-400 font-bold">COMPLIMENTARY</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Taxes & Fees</span>
-                <span className="font-medium text-slate-900">$0.00</span>
-              </div>
-
-              <div className="border-t border-slate-200 pt-4 flex justify-between items-baseline">
-                <span className="font-bold text-slate-900 text-base">Total Due</span>
-                <span className="text-2xl font-extrabold text-blue-600">${calculateTotal()}</span>
+              <div className="flex justify-between">
+                <span>AUTHENTICATION & PROCESSING:</span>
+                <span className="text-emerald-400 font-bold">$0.00 USD</span>
               </div>
 
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handlePlaceOrder}
-                disabled={placing}
-                className="w-full gap-2 mt-4 shadow-md shadow-blue-500/20"
-              >
-                <span>Proceed to Checkout</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-400 pt-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                <span>100% Encrypted Checkout</span>
+              <div className="pt-4 border-t border-[#282630] flex justify-between text-sm">
+                <span className="text-white uppercase font-bold">TOTAL AMOUNT:</span>
+                <span className="text-white font-bold">${calculateTotal()} USD</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <button
+              onClick={handlePlaceOrder}
+              className="w-full py-3.5 bg-white text-black font-mono-tech font-bold text-xs uppercase tracking-wider hover:bg-[#d4a373] transition-colors flex items-center justify-center gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>PROCEED TO CHECKOUT</span>
+            </button>
+
+            <div className="p-3 bg-[#0f0e13] border border-[#282630] text-[11px] text-[#6c697b] flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+              <span>BLOCKCHAIN-SECURED ALLOCATION & GUARANTEED DISPATCH</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Payment Selection Modal */}
+      {/* Checkout / Payment Modal */}
       <Dialog open={showPaymentModal} onClose={() => setShowPaymentModal(false)}>
-        <DialogHeader>
-          <DialogTitle>Select Payment Method</DialogTitle>
-          <DialogDescription>Choose your preferred payment option to complete your order.</DialogDescription>
-        </DialogHeader>
+        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full">
+          <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
+            <div>
+              <DialogTitle className="text-lg font-mono-tech uppercase font-bold text-white">
+                SELECT PAYMENT METHOD
+              </DialogTitle>
+              <DialogDescription className="text-xs font-mono-tech text-[#a19fad]">
+                Choose payment option to complete your Furniture Waley allocation.
+              </DialogDescription>
+            </div>
+            <button onClick={() => setShowPaymentModal(false)} className="p-1 text-[#6c697b] hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </DialogHeader>
 
-        <div className="space-y-4 my-2">
-          <div className="space-y-2">
-            {[
-              { id: "cash", label: "Cash on Delivery", desc: "Pay when item is delivered" },
-              { id: "credit_card", label: "Credit Card", desc: "Visa, Mastercard, AMEX" },
-              { id: "debit_card", label: "Debit Card", desc: "Direct bank card payment" },
-              { id: "bank_transfer", label: "Bank Transfer", desc: "Wire transfer settlement" },
-            ].map((method) => (
-              <label
-                key={method.id}
-                onClick={() => setPaymentMethod(method.id)}
-                className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
-                  paymentMethod === method.id
-                    ? "border-blue-500 bg-blue-50/50 shadow-2xs"
-                    : "border-slate-200 hover:bg-slate-50"
-                }`}
+          <div className="space-y-4 my-6 font-mono-tech text-xs">
+            <div className="space-y-2">
+              {[
+                { id: "cash", label: "CASH ON DELIVERY / IN-PERSON ALLOCATION", desc: "Pay upon white-glove arrival" },
+                { id: "card", label: "CREDIT / DEBIT CARD", desc: "Instant secure transaction" },
+                { id: "crypto", label: "USDC ON SUI / CRYPTO", desc: "Direct Web3 digital wallet settlement" },
+              ].map((pm) => (
+                <label
+                  key={pm.id}
+                  onClick={() => setPaymentMethod(pm.id)}
+                  className={`p-4 border flex items-start gap-3 cursor-pointer transition-colors ${
+                    paymentMethod === pm.id
+                      ? "border-[#d4a373] bg-[#282630]"
+                      : "border-[#282630] bg-[#0f0e13] hover:border-[#6c697b]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === pm.id}
+                    onChange={() => setPaymentMethod(pm.id)}
+                    className="mt-0.5 accent-[#d4a373]"
+                  />
+                  <div>
+                    <div className="font-bold text-white uppercase">{pm.label}</div>
+                    <div className="text-[11px] text-[#6c697b]">{pm.desc}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <div className="p-4 bg-[#0f0e13] border border-[#282630] flex justify-between font-bold text-sm">
+              <span>PAYMENT DUE:</span>
+              <span className="text-[#d4a373]">${calculateTotal()} USD</span>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="flex-1 py-2.5 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white"
               >
-                <input
-                  type="radio"
-                  name="payment"
-                  value={method.id}
-                  checked={paymentMethod === method.id}
-                  onChange={() => setPaymentMethod(method.id)}
-                  className="accent-blue-600"
-                />
-                <div className="flex-1">
-                  <p className="font-semibold text-slate-900 text-sm">{method.label}</p>
-                  <p className="text-xs text-slate-500">{method.desc}</p>
-                </div>
-              </label>
-            ))}
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
-            <span className="text-sm font-semibold text-slate-700">Total Order Amount:</span>
-            <span className="text-xl font-extrabold text-blue-600">${calculateTotal()}</span>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowPaymentModal(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleConfirmOrder}
-              disabled={placing}
-              className="flex-1 gap-2"
-            >
-              {placing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Placing Order...</span>
-                </>
-              ) : (
-                <span>Confirm Order</span>
-              )}
-            </Button>
+                CANCEL
+              </button>
+              <button
+                onClick={handleConfirmOrder}
+                disabled={placing}
+                className="flex-1 py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center justify-center gap-2"
+              >
+                {placing ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-black" />
+                ) : (
+                  <span>CONFIRM ORDER</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </Dialog>

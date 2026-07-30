@@ -5,7 +5,7 @@ from models.category import Category
 from middlewares.auth import role_required, get_current_user_id, get_current_user_role
 from middlewares.audit_log import log_action
 from schemas.product_schema import ProductCreateSchema
-from utils.cloudinary import upload_image
+from utils.cloudinary_service import upload_image
 
 product_bp = Blueprint("product_routes", __name__)
 product_schema = ProductCreateSchema()

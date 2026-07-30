@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../../components/AdminLayout";
 import api from "../../api/axios";
-import { Users, Package, ShoppingBag, CreditCard, Plus, ArrowRight, LifeBuoy, AlertTriangle, UserCheck, ShieldAlert } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Users, Package, ShoppingBag, CreditCard, ArrowRight, LifeBuoy, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
@@ -49,68 +44,38 @@ const Dashboard = () => {
   }, []);
 
   const statCards = [
-    {
-      label: "Total Users",
-      value: data.users.length,
-      icon: Users,
-      color: "text-[#2563EB] bg-[#E0F2FE] border-[#BAE6FD]",
-      path: "/admin/users",
-    },
-    {
-      label: "Total Products",
-      value: data.products.length,
-      icon: Package,
-      color: "text-[#15803D] bg-[#DCFCE7] border-[#BBF7D0]",
-      path: "/admin/products",
-    },
-    {
-      label: "Total Orders",
-      value: data.orders.length,
-      icon: ShoppingBag,
-      color: "text-[#B45309] bg-[#FEF3C7] border-[#FDE68A]",
-      path: "/admin/orders",
-    },
-    {
-      label: "Total Payments",
-      value: data.payments.length,
-      icon: CreditCard,
-      color: "text-[#6B21A8] bg-[#FAF5FF] border-[#F3E8FF]",
-      path: "/admin/payments",
-    },
+    { label: "REGISTERED USERS", value: data.users.length, icon: Users, path: "/admin/users" },
+    { label: "MARKETPLACE PRODUCTS", value: data.products.length, icon: Package, path: "/admin/products" },
+    { label: "TOTAL ORDERS", value: data.orders.length, icon: ShoppingBag, path: "/admin/orders" },
+    { label: "SETTLED PAYMENTS", value: data.payments.length, icon: CreditCard, path: "/admin/payments" },
   ];
 
-  // Derived real data
   const recentOrders = data.orders.slice(0, 5);
   const lowStockProducts = data.products.filter((p) => p.stock <= 5).slice(0, 5);
   const pendingTickets = data.tickets.filter((t) => t.status === "open" || t.status === "pending" || t.status === "in-progress").slice(0, 5);
-  const latestUsers = data.users.slice(0, 5);
 
-  const getOrderStatusBadge = (status) => {
+  const getOrderStatusChip = (status) => {
     const s = status?.toLowerCase();
     switch (s) {
-      case "pending": return <Badge variant="warning">Pending</Badge>;
-      case "processing": return <Badge variant="info">Processing</Badge>;
-      case "shipped": return <Badge variant="purple">Shipped</Badge>;
-      case "delivered": return <Badge variant="success">Delivered</Badge>;
-      case "cancelled": return <Badge variant="destructive">Cancelled</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
+      case "pending": return <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-mono-tech uppercase">PENDING</span>;
+      case "processing": return <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[10px] font-mono-tech uppercase">PROCESSING</span>;
+      case "shipped": return <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/40 text-[10px] font-mono-tech uppercase">SHIPPED</span>;
+      case "delivered": return <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-mono-tech uppercase">DELIVERED</span>;
+      default: return <span className="px-2 py-0.5 bg-[#282630] text-white text-[10px] font-mono-tech uppercase">{status}</span>;
     }
   };
 
   if (loading) {
     return (
       <AdminLayout>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-40 rounded-md" />
+        <div className="space-y-6 animate-pulse font-mono-tech">
+          <div className="h-8 w-48 bg-[#16151a]" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+              <div key={i} className="h-28 bg-[#16151a] border border-[#282630]" />
             ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Skeleton className="h-64 w-full rounded-lg" />
-            <Skeleton className="h-64 w-full rounded-lg" />
-          </div>
+          <div className="h-64 bg-[#16151a] border border-[#282630]" />
         </div>
       </AdminLayout>
     );
@@ -118,231 +83,133 @@ const Dashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-[#0F172A]">Dashboard Overview</h2>
-          <p className="text-xs text-[#64748B] mt-1">Real-time statistics and summary from existing system records</p>
+      <div className="space-y-8 pb-16 font-mono-tech">
+        {/* Header */}
+        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">GLOBAL SYSTEM MONITOR</span>
+            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
+              ADMIN DASHBOARD OVERVIEW
+            </h1>
+          </div>
         </div>
 
-        {/* Top Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Top Stat Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
-              <Card
+              <div
                 key={card.label}
                 onClick={() => navigate(card.path)}
-                className="cursor-pointer hover:border-[#CBD5E1] transition-all group"
+                className="cursor-pointer border border-[#282630] bg-[#16151a] hover:border-white p-6 transition-all flex items-center justify-between group"
               >
-                <CardContent className="p-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">{card.label}</p>
-                    <p className="text-2xl font-extrabold text-[#0F172A] mt-1">{card.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-lg border ${card.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-[#6c697b] uppercase tracking-widest block">{card.label}</span>
+                  <span className="text-3xl font-bold text-white tracking-tight">{card.value}</span>
+                </div>
+                <div className="p-3 bg-[#0f0e13] border border-[#282630] text-[#d4a373] group-hover:border-[#d4a373] transition-colors">
+                  <Icon className="h-5 w-5" />
+                </div>
+              </div>
             );
           })}
         </div>
 
-        {/* Quick Actions Bar */}
-        <Card className="p-4 bg-white border-[#E2E8F0]">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#475569]">Quick Actions:</span>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="primary" onClick={() => navigate("/admin/products")} className="gap-1.5 text-xs h-8">
-                <Plus className="h-3.5 w-3.5" />
-                Add Product
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate("/admin/orders")} className="gap-1.5 text-xs h-8">
-                <ShoppingBag className="h-3.5 w-3.5" />
-                View Orders
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate("/admin/payments")} className="gap-1.5 text-xs h-8">
-                <CreditCard className="h-3.5 w-3.5" />
-                View Payments
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate("/admin/users")} className="gap-1.5 text-xs h-8">
-                <Users className="h-3.5 w-3.5" />
-                Manage Users
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate("/admin/support_tickets")} className="gap-1.5 text-xs h-8">
-                <LifeBuoy className="h-3.5 w-3.5" />
-                Support Tickets
-              </Button>
+        {/* Real Data Grids */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent Orders Table */}
+          <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
+            <div className="p-5 border-b border-[#282630] flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold uppercase text-white">RECENT MARKETPLACE ORDERS</h3>
+                <span className="text-[11px] text-[#6c697b]">Latest platform transactions</span>
+              </div>
+              <button
+                onClick={() => navigate("/admin/orders")}
+                className="text-xs text-[#d4a373] uppercase hover:underline flex items-center gap-1"
+              >
+                <span>VIEW ALL</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
             </div>
-          </div>
-        </Card>
 
-        {/* Main Grid: Real Data Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Orders */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base">Recent Orders</CardTitle>
-                <CardDescription>Latest customer purchase orders</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/orders")} className="text-xs text-[#2563EB] h-7 px-2">
-                View All <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              {recentOrders.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#64748B]">No recent orders found.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer ID</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+            {recentOrders.length === 0 ? (
+              <div className="p-8 text-center text-xs text-[#6c697b]">NO ORDERS IN SYSTEM RECORD.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                      <th className="p-3 font-bold">ORDER ID</th>
+                      <th className="p-3 font-bold">BUYER ID</th>
+                      <th className="p-3 font-bold">AMOUNT</th>
+                      <th className="p-3 font-bold">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#282630]">
                     {recentOrders.map((o) => (
-                      <TableRow key={o.order_id}>
-                        <TableCell className="font-mono text-xs font-semibold">#{o.order_id}</TableCell>
-                        <TableCell className="text-xs">User #{o.user_id}</TableCell>
-                        <TableCell>{getOrderStatusBadge(o.status)}</TableCell>
-                      </TableRow>
+                      <tr key={o.order_id} className="hover:bg-[#1c1b22] text-white">
+                        <td className="p-3 font-bold">#{o.order_id}</td>
+                        <td className="p-3 text-[#a19fad]">User #{o.user_id}</td>
+                        <td className="p-3 text-[#d4a373]">${parseFloat(o.total_amount || 0).toFixed(2)} USD</td>
+                        <td className="p-3">{getOrderStatusChip(o.status)}</td>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Low Stock Alert */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <AlertTriangle className="h-4 w-4 text-[#F59E0B]" />
-                  Low Stock Inventory
-                </CardTitle>
-                <CardDescription>Products with 5 or fewer items remaining</CardDescription>
+                  </tbody>
+                </table>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/products")} className="text-xs text-[#2563EB] h-7 px-2">
-                View Catalog <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              {lowStockProducts.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#64748B]">All product inventory levels are healthy.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock Left</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lowStockProducts.map((p) => (
-                      <TableRow key={p.product_id}>
-                        <TableCell className="font-semibold text-xs text-[#0F172A]">{p.product_name}</TableCell>
-                        <TableCell className="text-xs">${parseFloat(p.price).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant="warning">{p.stock} remaining</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {/* Pending Support Tickets */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <LifeBuoy className="h-4 w-4 text-[#2563EB]" />
-                  Pending Support Tickets
-                </CardTitle>
-                <CardDescription>Customer inquiries requiring assistance</CardDescription>
+          <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
+            <div className="p-5 border-b border-[#282630] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <LifeBuoy className="h-4 w-4 text-[#d4a373]" />
+                <div>
+                  <h3 className="text-sm font-bold uppercase text-white">OPEN SUPPORT TICKETS</h3>
+                  <span className="text-[11px] text-[#6c697b]">Pending customer concierge inquiries</span>
+                </div>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/support_tickets")} className="text-xs text-[#2563EB] h-7 px-2">
-                View Queue <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              {pendingTickets.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#64748B]">No open or pending support tickets.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>User ID</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingTickets.map((t) => (
-                      <TableRow key={t.ticket_id}>
-                        <TableCell className="font-semibold text-xs text-[#0F172A] max-w-[180px] truncate">{t.subject}</TableCell>
-                        <TableCell className="text-xs">User #{t.user_id}</TableCell>
-                        <TableCell>
-                          <Badge variant="info">{t.status}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+              <button
+                onClick={() => navigate("/admin/support_tickets")}
+                className="text-xs text-[#d4a373] uppercase hover:underline flex items-center gap-1"
+              >
+                <span>MANAGE TICKETS</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
 
-          {/* Latest Registered Users */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div>
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <UserCheck className="h-4 w-4 text-[#16A34A]" />
-                  Latest User Accounts
-                </CardTitle>
-                <CardDescription>Recently registered accounts</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/admin/users")} className="text-xs text-[#2563EB] h-7 px-2">
-                View Users <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              {latestUsers.length === 0 ? (
-                <div className="p-6 text-center text-xs text-[#64748B]">No users registered yet.</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {latestUsers.map((u) => (
-                      <TableRow key={u.user_id}>
-                        <TableCell className="font-semibold text-xs text-[#0F172A]">{u.first_name} {u.last_name}</TableCell>
-                        <TableCell className="text-xs text-[#64748B]">{u.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={u.role === "admin" ? "destructive" : u.role === "seller" ? "info" : "success"}>
-                            {u.role}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
+            {pendingTickets.length === 0 ? (
+              <div className="p-8 text-center text-xs text-[#6c697b]">NO OPEN TICKETS AT THIS TIME.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
+                      <th className="p-3 font-bold">TICKET ID</th>
+                      <th className="p-3 font-bold">SUBJECT</th>
+                      <th className="p-3 font-bold">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#282630]">
+                    {pendingTickets.map((t) => (
+                      <tr key={t.ticket_id} className="hover:bg-[#1c1b22] text-white">
+                        <td className="p-3 font-bold">#{t.ticket_id}</td>
+                        <td className="p-3 font-medium uppercase truncate max-w-[200px]">{t.subject}</td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-bold uppercase">
+                            {t.status || "OPEN"}
+                          </span>
+                        </td>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </AdminLayout>
