@@ -39,19 +39,19 @@ const SellerDashboard = () => {
 
   const statCards = [
     {
-      label: "MY PRODUCTS / SLOTS",
+      label: "My Products & Inventory",
       value: data.products.length,
       icon: Package,
       path: "/seller/products",
     },
     {
-      label: "CUSTOMER ORDERS",
+      label: "Customer Orders Received",
       value: data.orders.length,
       icon: ShoppingBag,
       path: "/seller/orders",
     },
     {
-      label: "COMPLETED PAYOUTS",
+      label: "Completed Payout Transactions",
       value: data.payments.length,
       icon: CreditCard,
       path: "/seller/payments",
@@ -64,25 +64,25 @@ const SellerDashboard = () => {
   const getOrderStatusChip = (status) => {
     const s = status?.toLowerCase();
     switch (s) {
-      case "pending": return <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-mono-tech uppercase">PENDING</span>;
-      case "processing": return <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/40 text-[10px] font-mono-tech uppercase">PROCESSING</span>;
-      case "shipped": return <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/40 text-[10px] font-mono-tech uppercase">SHIPPED</span>;
-      case "delivered": return <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-mono-tech uppercase">DELIVERED</span>;
-      default: return <span className="px-2 py-0.5 bg-[#282630] text-white text-[10px] font-mono-tech uppercase">{status}</span>;
+      case "pending": return <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full uppercase">Pending</span>;
+      case "processing": return <span className="px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold rounded-full uppercase">Processing</span>;
+      case "shipped": return <span className="px-3 py-1 bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold rounded-full uppercase">Dispatched</span>;
+      case "delivered": return <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-full uppercase">Delivered</span>;
+      default: return <span className="px-3 py-1 bg-[#F8F7F4] text-[#1A1A1A] border border-[#E8E5DF] text-xs font-bold rounded-full uppercase">{status}</span>;
     }
   };
 
   if (loading) {
     return (
       <SellerLayout>
-        <div className="space-y-6 animate-pulse font-mono-tech">
-          <div className="h-8 w-48 bg-[#16151a]" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="space-y-6 animate-pulse py-6">
+          <div className="h-8 w-48 bg-[#E8E5DF] rounded-lg" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-28 bg-[#16151a] border border-[#282630]" />
+              <div key={i} className="h-32 bg-[#FFFFFF] rounded-2xl border border-[#E8E5DF]" />
             ))}
           </div>
-          <div className="h-64 bg-[#16151a] border border-[#282630]" />
+          <div className="h-64 bg-[#FFFFFF] rounded-2xl border border-[#E8E5DF]" />
         </div>
       </SellerLayout>
     );
@@ -90,22 +90,23 @@ const SellerDashboard = () => {
 
   return (
     <SellerLayout>
-      <div className="space-y-8 pb-16 font-mono-tech">
+      <div className="space-y-8 pb-16">
+        
         {/* Header */}
-        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E5DF] pb-6">
           <div>
-            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">MERCHANT OVERVIEW</span>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
-              STORE DASHBOARD
+            <span className="text-xs font-bold uppercase tracking-widest text-[#B8865B]">MERCHANT CONSOLE</span>
+            <h1 className="text-3xl font-serif-editorial font-bold text-[#1A1A1A] mt-1">
+              Store Dashboard & Analytics
             </h1>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => navigate("/seller/products")}
-              className="px-4 py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center gap-1.5"
+              className="px-6 py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors flex items-center gap-2 shadow-md"
             >
               <Plus className="h-4 w-4" />
-              <span>ADD NEW PRODUCT</span>
+              <span>Add New Product</span>
             </button>
           </div>
         </div>
@@ -118,14 +119,14 @@ const SellerDashboard = () => {
               <div
                 key={card.label}
                 onClick={() => navigate(card.path)}
-                className="cursor-pointer border border-[#282630] bg-[#16151a] hover:border-white p-6 transition-all flex items-center justify-between group"
+                className="cursor-pointer bg-white rounded-2xl border border-[#E8E5DF] crafto-card-shadow-hover p-6 flex items-center justify-between group"
               >
                 <div className="space-y-1">
-                  <span className="text-[10px] text-[#6c697b] uppercase tracking-widest block">{card.label}</span>
-                  <span className="text-3xl font-bold text-white tracking-tight">{card.value}</span>
+                  <span className="text-xs font-semibold text-[#71717A] block">{card.label}</span>
+                  <span className="text-3xl font-bold font-display text-[#1A1A1A]">{card.value}</span>
                 </div>
-                <div className="p-3 bg-[#0f0e13] border border-[#282630] text-[#d4a373] group-hover:border-[#d4a373] transition-colors">
-                  <Icon className="h-5 w-5" />
+                <div className="p-3.5 bg-[#F4EFEA] text-[#B8865B] rounded-xl group-hover:bg-[#B8865B] group-hover:text-white transition-all shadow-sm">
+                  <Icon className="h-6 w-6" />
                 </div>
               </div>
             );
@@ -134,42 +135,43 @@ const SellerDashboard = () => {
 
         {/* Tables Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
           {/* Recent Orders */}
-          <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
-            <div className="p-5 border-b border-[#282630] flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-[#E8E5DF] overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-[#E8E5DF] flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold uppercase text-white">RECENT STORE ORDERS</h3>
-                <span className="text-[11px] text-[#6c697b]">Client purchases for your products</span>
+                <h3 className="text-base font-bold text-[#1A1A1A]">Recent Merchant Orders</h3>
+                <span className="text-xs text-[#6B6B6B]">Customer purchases allocated to your catalog</span>
               </div>
               <button
                 onClick={() => navigate("/seller/orders")}
-                className="text-xs text-[#d4a373] uppercase hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#B8865B] hover:underline flex items-center gap-1"
               >
-                <span>VIEW ALL</span>
-                <ArrowRight className="h-3 w-3" />
+                <span>View All</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
             {recentOrders.length === 0 ? (
-              <div className="p-8 text-center text-xs text-[#6c697b]">NO ORDERS RECEIVED YET.</div>
+              <div className="p-12 text-center text-xs text-[#71717A]">No store orders received yet.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
-                      <th className="p-3 font-bold">ORDER ID</th>
-                      <th className="p-3 font-bold">CUSTOMER</th>
-                      <th className="p-3 font-bold">PRODUCT</th>
-                      <th className="p-3 font-bold">STATUS</th>
+                    <tr className="border-b border-[#E8E5DF] text-[#71717A] uppercase bg-[#F8F7F4]">
+                      <th className="p-4 font-bold">Order ID</th>
+                      <th className="p-4 font-bold">Customer</th>
+                      <th className="p-4 font-bold">Product</th>
+                      <th className="p-4 font-bold">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#282630]">
+                  <tbody className="divide-y divide-[#E8E5DF]">
                     {recentOrders.map((o) => (
-                      <tr key={o.order_id} className="hover:bg-[#1c1b22] text-white">
-                        <td className="p-3 font-bold">#{o.order_id}</td>
-                        <td className="p-3 text-[#a19fad]">{o.customer_name || "Customer"}</td>
-                        <td className="p-3 font-medium uppercase">{o.product_name || "Product"}</td>
-                        <td className="p-3">{getOrderStatusChip(o.status)}</td>
+                      <tr key={o.order_id} className="hover:bg-[#F8F7F4] text-[#1A1A1A] transition-colors">
+                        <td className="p-4 font-bold">#{o.order_id}</td>
+                        <td className="p-4 text-[#52525B]">{o.customer_name || "Customer"}</td>
+                        <td className="p-4 font-semibold">{o.product_name || "Product"}</td>
+                        <td className="p-4">{getOrderStatusChip(o.status)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -179,44 +181,44 @@ const SellerDashboard = () => {
           </div>
 
           {/* Low Stock Inventory */}
-          <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
-            <div className="p-5 border-b border-[#282630] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-400" />
+          <div className="bg-white rounded-2xl border border-[#E8E5DF] overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-[#E8E5DF] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
                 <div>
-                  <h3 className="text-sm font-bold uppercase text-white">LOW STOCK ALERTS</h3>
-                  <span className="text-[11px] text-[#6c697b]">Products with 5 or fewer items remaining</span>
+                  <h3 className="text-base font-bold text-[#1A1A1A]">Low Inventory Alerts</h3>
+                  <span className="text-xs text-[#6B6B6B]">Products with 5 or fewer units remaining</span>
                 </div>
               </div>
               <button
                 onClick={() => navigate("/seller/products")}
-                className="text-xs text-[#d4a373] uppercase hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-[#B8865B] hover:underline flex items-center gap-1"
               >
-                <span>MANAGE STOCK</span>
-                <ArrowRight className="h-3 w-3" />
+                <span>Manage Stock</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
             {lowStockProducts.length === 0 ? (
-              <div className="p-8 text-center text-xs text-[#6c697b]">ALL INVENTORY LEVELS ARE HEALTHY.</div>
+              <div className="p-12 text-center text-xs text-[#71717A]">All product stock levels are healthy.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
-                      <th className="p-3 font-bold">PRODUCT NAME</th>
-                      <th className="p-3 font-bold">PRICE</th>
-                      <th className="p-3 font-bold">STOCK</th>
+                    <tr className="border-b border-[#E8E5DF] text-[#71717A] uppercase bg-[#F8F7F4]">
+                      <th className="p-4 font-bold">Product Name</th>
+                      <th className="p-4 font-bold">Price</th>
+                      <th className="p-4 font-bold">Stock</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#282630]">
+                  <tbody className="divide-y divide-[#E8E5DF]">
                     {lowStockProducts.map((p) => (
-                      <tr key={p.product_id} className="hover:bg-[#1c1b22] text-white">
-                        <td className="p-3 font-bold uppercase">{p.product_name}</td>
-                        <td className="p-3 text-[#d4a373]">${parseFloat(p.price).toFixed(2)} USD</td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">
-                            {p.stock} REMAINING
+                      <tr key={p.product_id} className="hover:bg-[#F8F7F4] text-[#1A1A1A] transition-colors">
+                        <td className="p-4 font-semibold">{p.product_name}</td>
+                        <td className="p-4 text-[#B8865B] font-bold">${parseFloat(p.price).toFixed(2)} USD</td>
+                        <td className="p-4">
+                          <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full">
+                            {p.stock} Units Left
                           </span>
                         </td>
                       </tr>

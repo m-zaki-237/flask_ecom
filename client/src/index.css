@@ -2,53 +2,75 @@
 
 @layer base {
   :root {
-    --background: #0f0e13;
-    --card: #16151a;
-    --card-border: #282630;
-    --primary: #f3f3f5;
-    --primary-hover: #d4a373;
-    --accent: #d4a373;
-    --accent-hover: #e0a96d;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --muted-bg: #1c1b22;
-    --text-primary: #f3f3f5;
-    --text-secondary: #a19fad;
-    --text-muted: #6c697b;
-    --border: #282630;
-    --hover-bg: #22202b;
-    --radius: 0.25rem;
+    --background: #FFFFFF;
+    --secondary-bg: #F8F7F4;
+    --panel: #FFFFFF;
+    --card: #FFFFFF;
+    --card-border: #E8E5DF;
+    --primary: #1A1A1A;
+    --primary-hover: #000000;
+    --accent: #B8865B;
+    --accent-hover: #9E7047;
+    --accent-light: #F4EFEA;
+    --success: #16A34A;
+    --warning: #D97706;
+    --danger: #DC2626;
+    --muted-bg: #F4F3EF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #52525B;
+    --text-muted: #71717A;
+    --border: #E8E5DF;
+    --hover-bg: #F8F7F4;
+    --radius: 16px;
   }
 
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #0f0e13;
-    color: #f3f3f5;
+    background-color: #FFFFFF;
+    color: #1A1A1A;
     -webkit-font-smoothing: antialiased;
-    letter-spacing: 0.01em;
+    letter-spacing: -0.01em;
   }
 }
 
 .font-serif-editorial {
-  font-family: 'Playfair Display', Georgia, Cambria, "Times New Roman", Times, serif;
+  font-family: 'Playfair Display', Georgia, Cambria, serif;
 }
 
 .font-display {
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
 .font-mono-tech {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Custom Luxury Transitions */
+/* Crafto Custom Luxury Effects */
+.crafto-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+}
+
+.crafto-card-shadow {
+  box-shadow: 0 10px 30px -5px rgba(26, 26, 26, 0.05), 0 4px 12px -2px rgba(26, 26, 26, 0.03);
+}
+
+.crafto-card-shadow-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crafto-card-shadow-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(184, 134, 91, 0.12), 0 8px 20px -4px rgba(26, 26, 26, 0.06);
+}
+
 .luxury-image-zoom {
-  transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+.group:hover .luxury-image-zoom,
 .luxury-image-zoom:hover {
-  transform: scale(1.04);
+  transform: scale(1.06);
 }
 
 .scrollbar-none::-webkit-scrollbar {

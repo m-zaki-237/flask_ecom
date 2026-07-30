@@ -30,27 +30,27 @@ export const CustomerOrders = () => {
     const s = status?.toLowerCase();
     switch (s) {
       case "pending":
-        return <span className="px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-mono-tech uppercase tracking-widest">PENDING</span>;
+        return <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full uppercase tracking-wider">Pending</span>;
       case "processing":
-        return <span className="px-2.5 py-1 bg-blue-500/20 border border-blue-500/40 text-blue-400 text-[10px] font-mono-tech uppercase tracking-widest">PROCESSING</span>;
+        return <span className="px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold rounded-full uppercase tracking-wider">Processing</span>;
       case "shipped":
-        return <span className="px-2.5 py-1 bg-purple-500/20 border border-purple-500/40 text-purple-400 text-[10px] font-mono-tech uppercase tracking-widest">DISPATCHED</span>;
+        return <span className="px-3 py-1 bg-purple-50 text-purple-800 border border-purple-200 text-xs font-bold rounded-full uppercase tracking-wider">Dispatched</span>;
       case "delivered":
-        return <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono-tech uppercase tracking-widest">DELIVERED</span>;
+        return <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-full uppercase tracking-wider">Delivered</span>;
       case "cancelled":
-        return <span className="px-2.5 py-1 bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-mono-tech uppercase tracking-widest">CANCELLED</span>;
+        return <span className="px-3 py-1 bg-red-50 text-red-800 border border-red-200 text-xs font-bold rounded-full uppercase tracking-wider">Cancelled</span>;
       default:
-        return <span className="px-2.5 py-1 bg-[#282630] text-white text-[10px] font-mono-tech uppercase tracking-widest">{status}</span>;
+        return <span className="px-3 py-1 bg-[#F8F7F4] text-[#1A1A1A] border border-[#E8E5DF] text-xs font-bold rounded-full uppercase tracking-wider">{status}</span>;
     }
   };
 
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="space-y-6 animate-pulse">
-          <div className="h-8 w-48 bg-[#16151a]" />
+        <div className="space-y-6 animate-pulse py-8">
+          <div className="h-8 w-48 bg-[#E8E5DF] rounded-lg" />
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 bg-[#16151a] border border-[#282630]" />
+            <div key={i} className="h-40 bg-[#F8F7F4] rounded-2xl border border-[#E8E5DF]" />
           ))}
         </div>
       </CustomerLayout>
@@ -60,15 +60,15 @@ export const CustomerOrders = () => {
   if (orders.length === 0) {
     return (
       <CustomerLayout>
-        <div className="border border-[#282630] bg-[#16151a] p-16 text-center space-y-4 max-w-md mx-auto my-12">
-          <PackageCheck className="h-12 w-12 text-[#6c697b] mx-auto" />
-          <h2 className="text-xl font-mono-tech uppercase font-bold text-white">NO ORDERS FOUND</h2>
-          <p className="text-xs font-mono-tech text-[#6c697b]">You have not placed any furniture slot orders yet.</p>
+        <div className="rounded-3xl border border-[#E8E5DF] bg-[#F8F7F4] p-16 text-center space-y-4 max-w-md mx-auto my-12">
+          <PackageCheck className="h-14 w-14 text-[#B8865B] mx-auto opacity-70" />
+          <h2 className="text-2xl font-serif-editorial font-bold text-[#1A1A1A]">No Orders Placed Yet</h2>
+          <p className="text-xs text-[#6B6B6B]">You have not made any purchases in our marketplace catalog.</p>
           <button
             onClick={() => navigate("/home")}
-            className="px-6 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+            className="px-8 py-3.5 bg-[#1A1A1A] text-white text-xs font-semibold rounded-xl hover:bg-[#B8865B] transition-colors shadow-md"
           >
-            EXPLORE MARKETPLACE
+            Explore Marketplace
           </button>
         </div>
       </CustomerLayout>
@@ -77,13 +77,14 @@ export const CustomerOrders = () => {
 
   return (
     <CustomerLayout>
-      <div className="space-y-8 pb-16">
+      <div className="space-y-10 pb-16">
+        
         {/* Orders Header */}
-        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E5DF] pb-6">
           <div>
-            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">TRANSACTION RECORD</span>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
-              MY ALLOCATION ORDERS ({orders.length})
+            <span className="text-xs font-bold uppercase tracking-widest text-[#B8865B]">PURCHASE HISTORY</span>
+            <h1 className="text-3xl font-serif-editorial font-bold text-[#1A1A1A] mt-1">
+              My Orders ({orders.length})
             </h1>
           </div>
         </div>
@@ -91,34 +92,35 @@ export const CustomerOrders = () => {
         {/* Orders List */}
         <div className="space-y-6">
           {orders.map((order) => (
-            <div key={order.order_id} className="border border-[#282630] bg-[#16151a] overflow-hidden font-mono-tech">
+            <div key={order.order_id} className="bg-white rounded-2xl border border-[#E8E5DF] overflow-hidden shadow-sm">
+              
               {/* Order Header Bar */}
-              <div className="bg-[#0f0e13] border-b border-[#282630] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
+              <div className="bg-[#F8F7F4] border-b border-[#E8E5DF] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-base font-bold text-white uppercase">ORDER #{order.order_id}</span>
+                    <span className="text-lg font-bold font-serif-editorial text-[#1A1A1A]">Order #{order.order_id}</span>
                     {getStatusChip(order.status)}
-                    <span className="px-2 py-0.5 border border-[#282630] bg-[#16151a] text-[#a19fad] text-[10px] uppercase">
-                      PAYMENT: {order.payment_status || "PENDING"}
+                    <span className="px-3 py-1 bg-white border border-[#E8E5DF] text-[#52525B] text-xs font-semibold rounded-full uppercase">
+                      Payment: {order.payment_status || "Pending"}
                     </span>
                   </div>
-                  <span className="text-[11px] text-[#6c697b] block">
-                    PLACED ON {order.created_at ? new Date(order.created_at).toLocaleDateString() : "RECENT"}
+                  <span className="text-xs text-[#71717A] block">
+                    Placed on {order.created_at ? new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent"}
                   </span>
                 </div>
 
                 {order.total_amount && (
                   <div className="sm:text-right">
-                    <span className="text-[11px] text-[#6c697b] uppercase block">TOTAL AMOUNT:</span>
-                    <span className="text-lg font-bold text-white">${parseFloat(order.total_amount).toFixed(2)} USD</span>
+                    <span className="text-xs text-[#71717A] block font-medium">Total Amount</span>
+                    <span className="text-xl font-bold font-display text-[#1A1A1A]">${parseFloat(order.total_amount).toFixed(2)} USD</span>
                   </div>
                 )}
               </div>
 
               {/* Order Items List */}
-              <div className="p-5 space-y-4">
-                <span className="text-[11px] text-[#6c697b] uppercase block border-b border-[#282630] pb-2">
-                  ALLOCATED PIECES:
+              <div className="p-6 space-y-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#1A1A1A] block border-b border-[#E8E5DF] pb-2">
+                  Items Purchased
                 </span>
                 <div className="space-y-3">
                   {order.items?.map((item, index) => {
@@ -128,26 +130,26 @@ export const CustomerOrders = () => {
                     const itemTotal = parseFloat(item.total_price || (unitPrice * item.quantity));
 
                     return (
-                      <div key={index} className="flex items-center justify-between gap-4 p-3 bg-[#0f0e13] border border-[#282630]">
+                      <div key={index} className="flex items-center justify-between gap-4 p-4 rounded-xl bg-[#F8F7F4] border border-[#E8E5DF]">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                          <div className="h-12 w-12 bg-[#16151a] border border-[#282630] overflow-hidden shrink-0 flex items-center justify-center">
+                          <div className="h-14 w-14 rounded-lg bg-white border border-[#E8E5DF] overflow-hidden shrink-0 flex items-center justify-center">
                             {img ? (
                               <img src={img} alt={name} className="h-full w-full object-cover" />
                             ) : (
-                              <ShoppingBag className="h-5 w-5 text-[#6c697b]" />
+                              <ShoppingBag className="h-6 w-6 text-[#71717A] opacity-30" />
                             )}
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <p className="font-bold text-white text-xs uppercase truncate">{name}</p>
-                            <p className="text-[11px] text-[#6c697b] mt-0.5">
-                              QUANTITY: <span className="text-white font-bold">{item.quantity}</span>
+                            <p className="font-bold text-[#1A1A1A] text-sm truncate">{name}</p>
+                            <p className="text-xs text-[#6B6B6B] mt-0.5">
+                              Quantity: <span className="text-[#1A1A1A] font-bold">{item.quantity}</span>
                               {unitPrice > 0 && ` × $${unitPrice.toFixed(2)} USD`}
                             </p>
                           </div>
                         </div>
 
-                        <span className="font-bold text-white text-xs">
+                        <span className="font-bold font-display text-[#1A1A1A] text-sm">
                           ${itemTotal.toFixed(2)} USD
                         </span>
                       </div>

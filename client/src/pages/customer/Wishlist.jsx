@@ -75,11 +75,11 @@ export default function Wishlist() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="space-y-6 animate-pulse">
-          <div className="h-8 w-40 bg-[#16151a]" />
+        <div className="space-y-6 animate-pulse py-8">
+          <div className="h-8 w-40 bg-[#E8E5DF] rounded-lg" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-[#16151a] border border-[#282630]" />
+              <div key={i} className="h-64 bg-[#F8F7F4] rounded-2xl border border-[#E8E5DF]" />
             ))}
           </div>
         </div>
@@ -89,82 +89,83 @@ export default function Wishlist() {
 
   return (
     <CustomerLayout>
-      <div className="space-y-8 pb-16">
+      <div className="space-y-10 pb-16">
+        
         {/* Header Banner */}
-        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E5DF] pb-6">
           <div>
-            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">SAVED ALLOCATIONS</span>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
-              SAVED WISHLIST ({products.length})
+            <span className="text-xs font-bold uppercase tracking-widest text-[#B8865B]">SAVED COLLECTION</span>
+            <h1 className="text-3xl font-serif-editorial font-bold text-[#1A1A1A] mt-1">
+              My Wishlist ({products.length} Items)
             </h1>
           </div>
           <button
             onClick={() => navigate("/home")}
-            className="px-4 py-2 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech uppercase text-white hover:border-[#d4a373]"
+            className="px-5 py-2.5 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl hover:bg-[#E8E5DF] transition-colors"
           >
-            EXPLORE MARKETPLACE
+            Explore Catalog
           </button>
         </div>
 
         {products.length === 0 ? (
-          <div className="border border-[#282630] bg-[#16151a] p-16 text-center space-y-4 max-w-md mx-auto my-12">
-            <Heart className="h-12 w-12 text-[#6c697b] mx-auto" />
-            <h2 className="text-xl font-mono-tech uppercase font-bold text-white">YOUR WISHLIST IS EMPTY</h2>
-            <p className="text-xs font-mono-tech text-[#6c697b]">Browse products and save your favorite furniture pieces.</p>
+          <div className="rounded-3xl border border-[#E8E5DF] bg-[#F8F7F4] p-16 text-center space-y-4 max-w-md mx-auto my-12">
+            <Heart className="h-14 w-14 text-[#B8865B] mx-auto opacity-70" />
+            <h2 className="text-2xl font-serif-editorial font-bold text-[#1A1A1A]">Your Wishlist is Empty</h2>
+            <p className="text-xs text-[#6B6B6B]">Browse our lifestyle collections and tap the heart icon to save products for later.</p>
             <button
               onClick={() => navigate("/home")}
-              className="px-6 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+              className="px-8 py-3.5 bg-[#1A1A1A] text-white text-xs font-semibold rounded-xl hover:bg-[#B8865B] transition-colors shadow-md"
             >
-              BROWSE PRODUCTS
+              Browse Marketplace
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <div
                 key={product.product_id}
-                className="group bg-[#16151a] border border-[#282630] hover:border-white transition-all flex flex-col justify-between overflow-hidden"
+                className="group bg-white rounded-2xl border border-[#E8E5DF] crafto-card-shadow-hover flex flex-col justify-between overflow-hidden"
               >
-                <div className="relative h-56 bg-[#0f0e13] border-b border-[#282630] overflow-hidden">
+                <div className="relative h-60 bg-[#F8F7F4] border-b border-[#E8E5DF] overflow-hidden">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
                       alt={product.product_name}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="h-full w-full object-cover luxury-image-zoom"
                     />
                   ) : (
-                    <div className="h-full w-full flex items-center justify-center text-[#6c697b]">
-                      <ImageIcon className="h-8 w-8" />
+                    <div className="h-full w-full flex items-center justify-center text-[#71717A]">
+                      <ImageIcon className="h-8 w-8 opacity-30" />
                     </div>
                   )}
 
                   <button
                     onClick={() => handleRemoveFromWishlist(product)}
-                    className="absolute top-3 right-3 p-2 bg-[#0f0e13]/80 border border-[#282630] text-[#6c697b] hover:text-red-400 hover:border-red-400 transition-colors"
+                    className="absolute top-3 right-3 p-2.5 bg-white/90 backdrop-blur-md rounded-full text-gray-400 hover:text-red-600 hover:bg-white shadow-md transition-all"
                     title="Remove item"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
-                <div className="p-5 space-y-4 font-mono-tech flex-1 flex flex-col justify-between">
+                <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                   <div className="space-y-1.5">
-                    <span className="text-[10px] text-[#d4a373] uppercase tracking-widest block">
-                      SLOT #FW-00{product.product_id}
+                    <span className="text-[10px] font-bold text-[#B8865B] uppercase tracking-wider block">
+                      SKU: MB-00{product.product_id}
                     </span>
-                    <h3 className="text-sm font-bold uppercase text-white line-clamp-1">{product.product_name}</h3>
-                    <p className="text-base font-bold text-white pt-1">
+                    <h3 className="text-base font-bold text-[#1A1A1A] line-clamp-1">{product.product_name}</h3>
+                    <p className="text-lg font-bold font-display text-[#1A1A1A] pt-1">
                       ${parseFloat(product.price).toFixed(2)} USD
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-[#282630] mt-auto">
+                  <div className="pt-4 border-t border-[#E8E5DF] mt-auto">
                     <button
                       onClick={() => navigate(`/product/${product.product_id}`)}
-                      className="w-full py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors flex items-center justify-center gap-2 shadow-sm"
                     >
-                      <Eye className="h-3.5 w-3.5" />
-                      <span>VIEW PIECE</span>
+                      <Eye className="h-4 w-4" />
+                      <span>View Product Details</span>
                     </button>
                   </div>
                 </div>

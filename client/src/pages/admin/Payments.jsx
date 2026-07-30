@@ -125,10 +125,10 @@ export default function Payments() {
   const getStatusChip = (status) => {
     const s = status?.toLowerCase();
     switch (s) {
-      case "completed": return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">COMPLETED</span>;
-      case "pending": return <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">PENDING</span>;
-      case "failed": return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">FAILED</span>;
-      default: return <span className="px-2.5 py-1 bg-[#282630] text-white text-[10px] uppercase font-bold">{status}</span>;
+      case "completed": return <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-full uppercase">Completed</span>;
+      case "pending": return <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full uppercase">Pending</span>;
+      case "failed": return <span className="px-3 py-1 bg-red-50 text-red-800 border border-red-200 text-xs font-bold rounded-full uppercase">Failed</span>;
+      default: return <span className="px-3 py-1 bg-[#F8F7F4] text-[#1A1A1A] border border-[#E8E5DF] text-xs font-bold rounded-full uppercase">{status}</span>;
     }
   };
 
@@ -141,96 +141,97 @@ export default function Payments() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8 pb-16 font-mono-tech">
+      <div className="space-y-8 pb-16">
+        
         {/* Header */}
-        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E5DF] pb-6">
           <div>
-            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">GLOBAL FINANCIAL RECORD</span>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
-              SYSTEM PAYMENTS & SETTLEMENTS
+            <span className="text-xs font-bold uppercase tracking-widest text-[#B8865B]">SYSTEM SETTLEMENTS</span>
+            <h1 className="text-3xl font-serif-editorial font-bold text-[#1A1A1A] mt-1">
+              Global Payments & Settlements
             </h1>
           </div>
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-5 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors flex items-center gap-2 shadow-md"
           >
             <Plus className="h-4 w-4" />
-            <span>RECORD PAYMENT</span>
+            <span>Record Payment</span>
           </button>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#71717A]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="SEARCH PAYMENT ID, ORDER ID, METHOD..."
-              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
+              placeholder="Search Payment ID, Order ID, method..."
+              className="w-full bg-white border border-[#E8E5DF] rounded-xl pl-10 pr-4 py-3 text-xs text-[#1A1A1A] placeholder-[#71717A] focus:outline-none focus:border-[#B8865B] shadow-sm"
             />
           </div>
-          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
-            TOTAL PAYMENTS: <strong className="text-white">{filteredPayments.length}</strong>
+          <span className="text-xs font-semibold text-[#52525B]">
+            Total Payments: <strong className="text-[#1A1A1A]">{filteredPayments.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#E8E5DF] overflow-hidden shadow-sm">
           {loading ? (
-            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING PAYMENT TRANSACTIONS...</div>
+            <div className="p-12 text-center text-xs text-[#71717A] animate-pulse">Loading payment transactions...</div>
           ) : filteredPayments.length === 0 ? (
             <div className="p-16 text-center space-y-4">
-              <CreditCard className="h-10 w-10 text-[#6c697b] mx-auto" />
-              <h3 className="text-base font-bold uppercase text-white">NO PAYMENTS RECORDED</h3>
-              <p className="text-xs text-[#6c697b]">No payments match your search query.</p>
+              <CreditCard className="h-12 w-12 text-[#B8865B] mx-auto opacity-60" />
+              <h3 className="text-lg font-bold text-[#1A1A1A]">No Payments Recorded</h3>
+              <p className="text-xs text-[#6B6B6B]">No payments match your search query.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
-                    <th className="p-4 font-bold">PAYMENT ID</th>
-                    <th className="p-4 font-bold">ORDER ID</th>
-                    <th className="p-4 font-bold">AMOUNT</th>
-                    <th className="p-4 font-bold">METHOD</th>
-                    <th className="p-4 font-bold">STATUS</th>
-                    <th className="p-4 font-bold">DATE</th>
-                    <th className="p-4 font-bold text-right">ACTIONS</th>
+                  <tr className="border-b border-[#E8E5DF] text-[#71717A] uppercase bg-[#F8F7F4]">
+                    <th className="p-4 font-bold">Payment ID</th>
+                    <th className="p-4 font-bold">Order ID</th>
+                    <th className="p-4 font-bold">Amount</th>
+                    <th className="p-4 font-bold">Method</th>
+                    <th className="p-4 font-bold">Status</th>
+                    <th className="p-4 font-bold">Date</th>
+                    <th className="p-4 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#282630]">
+                <tbody className="divide-y divide-[#E8E5DF]">
                   {filteredPayments.map((p) => (
-                    <tr key={p.payment_id} className="hover:bg-[#1c1b22] text-white">
-                      <td className="p-4 font-bold text-[#d4a373]">#{p.payment_id}</td>
-                      <td className="p-4 text-[#a19fad]">Order #{p.order_id}</td>
-                      <td className="p-4 font-bold text-emerald-400">${parseFloat(p.amount).toFixed(2)} USD</td>
+                    <tr key={p.payment_id} className="hover:bg-[#F8F7F4] text-[#1A1A1A] transition-colors">
+                      <td className="p-4 font-bold text-[#B8865B]">#{p.payment_id}</td>
+                      <td className="p-4 text-[#52525B]">Order #{p.order_id}</td>
+                      <td className="p-4 font-bold font-display text-sm text-[#16A34A]">${parseFloat(p.amount).toFixed(2)} USD</td>
                       <td className="p-4">
-                        <span className="px-2 py-0.5 border border-[#282630] bg-[#0f0e13] text-white text-[10px] uppercase">
+                        <span className="px-3 py-1 bg-white border border-[#E8E5DF] text-[#52525B] text-xs font-semibold rounded-full uppercase">
                           {p.payment_method?.replace("_", " ")}
                         </span>
                       </td>
                       <td className="p-4">{getStatusChip(p.payment_status)}</td>
-                      <td className="p-4 text-[#6c697b]">
+                      <td className="p-4 text-[#71717A]">
                         {p.created_at ? new Date(p.created_at).toLocaleDateString() : "N/A"}
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setSelectedPayment(p)}
-                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
-                            title="Details"
+                            className="p-2 border border-[#E8E5DF] bg-[#F8F7F4] text-[#52525B] hover:text-[#1A1A1A] hover:bg-[#E8E5DF] rounded-xl transition-colors"
+                            title="Details / Update"
                           >
-                            <Eye className="h-3.5 w-3.5" />
+                            <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeleteId(p.payment_id)}
-                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
-                            title="Delete"
+                            className="p-2 border border-[#E8E5DF] bg-[#F8F7F4] text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                            title="Delete Payment"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -243,21 +244,21 @@ export default function Payments() {
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+            <div className="p-4 border-t border-[#E8E5DF] bg-[#F8F7F4] flex justify-between items-center text-xs">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+                className="px-4 py-2 border border-[#E8E5DF] bg-white text-[#1A1A1A] rounded-xl disabled:opacity-40 font-semibold"
               >
-                PREVIOUS
+                Previous
               </button>
-              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <span className="text-[#71717A]">Page {page} of {totalPages}</span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+                className="px-4 py-2 border border-[#E8E5DF] bg-white text-[#1A1A1A] rounded-xl disabled:opacity-40 font-semibold"
               >
-                NEXT
+                Next
               </button>
             </div>
           )}
@@ -266,167 +267,163 @@ export default function Payments() {
 
       {/* Record Payment Modal */}
       <Dialog open={showAddModal} onClose={() => setShowAddModal(false)}>
-        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full font-mono-tech text-xs">
-          <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
+        <div className="bg-white border border-[#E8E5DF] rounded-2xl text-[#1A1A1A] p-8 max-w-lg w-full shadow-2xl space-y-4 text-xs">
+          <DialogHeader className="pb-4 border-b border-[#E8E5DF] flex flex-row items-center justify-between">
             <div>
-              <DialogTitle className="text-lg uppercase font-bold text-white">RECORD PAYMENT TRANSACTION</DialogTitle>
-              <DialogDescription className="text-xs text-[#a19fad]">Manually record or update payment transaction.</DialogDescription>
+              <DialogTitle className="text-xl font-bold font-serif-editorial text-[#1A1A1A]">Record Payment</DialogTitle>
+              <DialogDescription className="text-xs text-[#6B6B6B] mt-1">Manual system payment entry.</DialogDescription>
             </div>
-            <button onClick={() => setShowAddModal(false)} className="p-1 text-[#6c697b] hover:text-white">
+            <button onClick={() => setShowAddModal(false)} className="p-2 text-gray-400 hover:text-[#1A1A1A] hover:bg-[#F8F7F4] rounded-xl">
               <X className="h-4 w-4" />
             </button>
           </DialogHeader>
 
-          <form onSubmit={handleCreatePayment} className="space-y-4 my-6">
+          <form onSubmit={handleCreatePayment} className="space-y-4 my-4">
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">ORDER ID*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Order ID*</label>
               <input
                 type="number"
                 value={newPayment.order_id}
                 onChange={(e) => setNewPayment({ ...newPayment, order_id: e.target.value })}
                 required
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               />
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">AMOUNT (USD)*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Amount (USD)*</label>
               <input
                 type="number"
                 step="0.01"
                 value={newPayment.amount}
                 onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
                 required
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               />
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">PAYMENT METHOD*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Payment Method*</label>
               <select
                 value={newPayment.payment_method}
                 onChange={(e) => setNewPayment({ ...newPayment, payment_method: e.target.value })}
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373] uppercase"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               >
-                <option value="credit_card">CREDIT CARD</option>
-                <option value="crypto_usdc">USDC ON SUI / CRYPTO</option>
-                <option value="cash">CASH ON DELIVERY</option>
+                <option value="cash">Cash on Delivery</option>
+                <option value="credit_card">Credit / Debit Card</option>
+                <option value="digital_wallet">Digital Wallet</option>
               </select>
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">PAYMENT STATUS*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Status*</label>
               <select
                 value={newPayment.payment_status}
                 onChange={(e) => setNewPayment({ ...newPayment, payment_status: e.target.value })}
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373] uppercase"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               >
-                <option value="completed">COMPLETED</option>
-                <option value="pending">PENDING</option>
-                <option value="failed">FAILED</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
               </select>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3">
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 py-2.5 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech text-white uppercase"
+                className="flex-1 py-3 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl hover:bg-[#E8E5DF]"
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+                className="flex-1 py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors shadow-md"
               >
-                {submitting ? "RECORDING..." : "RECORD PAYMENT"}
+                {submitting ? "Recording..." : "Save Payment"}
               </button>
             </div>
           </form>
         </div>
       </Dialog>
 
-      {/* Payment Details Modal */}
+      {/* Details & Update Status Modal */}
       <Dialog open={!!selectedPayment} onClose={() => setSelectedPayment(null)}>
         {selectedPayment && (
-          <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
-            <DialogHeader className="pb-2 border-b border-[#282630] flex flex-row items-center justify-between">
-              <DialogTitle className="text-base uppercase font-bold text-white">PAYMENT DETAILS #{selectedPayment.payment_id}</DialogTitle>
-              <button onClick={() => setSelectedPayment(null)} className="p-1 text-[#6c697b] hover:text-white">
+          <div className="bg-white border border-[#E8E5DF] rounded-2xl text-[#1A1A1A] p-8 max-w-md w-full shadow-2xl space-y-4 text-xs">
+            <DialogHeader className="pb-4 border-b border-[#E8E5DF] flex flex-row items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-bold font-serif-editorial text-[#1A1A1A]">Payment #{selectedPayment.payment_id}</DialogTitle>
+                <DialogDescription className="text-xs text-[#6B6B6B] mt-1">Order #{selectedPayment.order_id}</DialogDescription>
+              </div>
+              <button onClick={() => setSelectedPayment(null)} className="p-2 text-gray-400 hover:text-[#1A1A1A] hover:bg-[#F8F7F4] rounded-xl">
                 <X className="h-4 w-4" />
               </button>
             </DialogHeader>
 
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-[#6c697b]">ORDER ID:</span>
-                <span className="text-white font-bold">#{selectedPayment.order_id}</span>
+            <div className="space-y-4 my-4">
+              <div className="p-4 rounded-xl bg-[#F8F7F4] border border-[#E8E5DF] space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-[#71717A]">Settled Amount:</span>
+                  <span className="font-bold font-display text-sm text-[#16A34A]">${parseFloat(selectedPayment.amount).toFixed(2)} USD</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#71717A]">Payment Method:</span>
+                  <span className="font-semibold">{selectedPayment.payment_method}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#6c697b]">AMOUNT:</span>
-                <span className="text-emerald-400 font-bold">${parseFloat(selectedPayment.amount).toFixed(2)} USD</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6c697b]">METHOD:</span>
-                <span className="text-white uppercase">{selectedPayment.payment_method}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6c697b]">STATUS:</span>
-                <div>{getStatusChip(selectedPayment.payment_status)}</div>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6c697b]">DATE RECORDED:</span>
-                <span className="text-white">{selectedPayment.created_at ? new Date(selectedPayment.created_at).toLocaleString() : "N/A"}</span>
-              </div>
-            </div>
 
-            <div className="pt-4 border-t border-[#282630] space-y-2">
-              <label className="block text-[#a19fad] uppercase">UPDATE STATUS:</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => handleStatusUpdate(selectedPayment.payment_id, "completed")}
-                  className="py-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-[10px] uppercase"
+              <div>
+                <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1.5">Update Status:</label>
+                <select
+                  defaultValue={selectedPayment.payment_status}
+                  onChange={(e) => handleStatusUpdate(selectedPayment.payment_id, e.target.value)}
+                  className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
                 >
-                  COMPLETED
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(selectedPayment.payment_id, "pending")}
-                  className="py-2 bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-[10px] uppercase"
-                >
-                  PENDING
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(selectedPayment.payment_id, "failed")}
-                  className="py-2 bg-red-500/20 border border-red-500/40 text-red-400 font-bold text-[10px] uppercase"
-                >
-                  FAILED
-                </button>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                </select>
               </div>
+
+              <button
+                onClick={() => setSelectedPayment(null)}
+                className="w-full py-3 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl hover:bg-[#E8E5DF]"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
       </Dialog>
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
-          <h3 className="text-base font-bold uppercase text-white">CONFIRM PAYMENT DELETION</h3>
-          <p className="text-xs text-[#a19fad]">
+        <div className="bg-white border border-[#E8E5DF] rounded-2xl text-[#1A1A1A] p-6 max-w-md w-full shadow-2xl space-y-4 text-xs">
+          <DialogHeader className="pb-3 border-b border-[#E8E5DF] flex flex-row items-center justify-between">
+            <DialogTitle className="text-lg font-bold font-serif-editorial text-[#1A1A1A]">Confirm Payment Removal</DialogTitle>
+            <button onClick={() => setDeleteId(null)} className="p-2 text-gray-400 hover:text-[#1A1A1A] hover:bg-[#F8F7F4] rounded-xl">
+              <X className="h-4 w-4" />
+            </button>
+          </DialogHeader>
+
+          <p className="text-xs text-[#6B6B6B]">
             Are you sure you want to delete Payment Record #{deleteId}? This action cannot be undone.
           </p>
+
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => setDeleteId(null)}
-              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+              className="flex-1 py-2.5 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               onClick={handleDelete}
-              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+              className="flex-1 py-2.5 bg-red-600 text-white font-semibold text-xs rounded-xl hover:bg-red-700 shadow-md"
             >
-              DELETE
+              Delete Payment
             </button>
           </div>
         </div>

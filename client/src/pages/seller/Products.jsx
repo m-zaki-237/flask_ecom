@@ -190,20 +190,21 @@ const SellerProducts = () => {
   );
 
   const getStockChip = (stock) => {
-    if (stock <= 0) return <span className="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] uppercase font-bold">OUT OF STOCK</span>;
-    if (stock <= 5) return <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] uppercase font-bold">LOW STOCK ({stock})</span>;
-    return <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold">IN STOCK ({stock})</span>;
+    if (stock <= 0) return <span className="px-3 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-full">Out of Stock</span>;
+    if (stock <= 5) return <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-full">Low Stock ({stock})</span>;
+    return <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-full">In Stock ({stock})</span>;
   };
 
   return (
     <SellerLayout>
-      <div className="space-y-8 pb-16 font-mono-tech">
+      <div className="space-y-8 pb-16">
+        
         {/* Header */}
-        <div className="border border-[#282630] bg-[#16151a] p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8E5DF] pb-6">
           <div>
-            <span className="text-xs font-mono-tech uppercase tracking-widest text-[#d4a373]">MERCHANT INVENTORY</span>
-            <h1 className="text-2xl sm:text-3xl font-display font-bold uppercase text-white mt-1">
-              STORE PRODUCTS & BUILD SLOTS
+            <span className="text-xs font-bold uppercase tracking-widest text-[#B8865B]">MERCHANT CATALOG</span>
+            <h1 className="text-3xl font-serif-editorial font-bold text-[#1A1A1A] mt-1">
+              Store Product Listings
             </h1>
           </div>
 
@@ -215,69 +216,69 @@ const SellerProducts = () => {
               setImagePreview(null);
               setShowModal(true);
             }}
-            className="px-5 py-3 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors flex items-center gap-2"
+            className="px-6 py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors flex items-center gap-2 shadow-md"
           >
             <Plus className="h-4 w-4" />
-            <span>ADD PRODUCT</span>
+            <span>Add New Product</span>
           </button>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#282630] pb-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3.5 top-3 h-3.5 w-3.5 text-[#6c697b]" />
+            <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#71717A]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="SEARCH PRODUCTS BY NAME OR ID..."
-              className="w-full bg-[#0f0e13] border border-[#282630] pl-9 pr-4 py-2.5 text-xs font-mono-tech text-white placeholder-[#6c697b] focus:outline-none focus:border-[#d4a373]"
+              placeholder="Search products by name or ID..."
+              className="w-full bg-white border border-[#E8E5DF] rounded-xl pl-10 pr-4 py-3 text-xs text-[#1A1A1A] placeholder-[#71717A] focus:outline-none focus:border-[#B8865B] shadow-sm"
             />
           </div>
-          <span className="text-xs font-mono-tech text-[#6c697b] uppercase">
-            TOTAL LISTINGS: <strong className="text-white">{filteredProducts.length}</strong>
+          <span className="text-xs font-semibold text-[#52525B]">
+            Total Listings: <strong className="text-[#1A1A1A]">{filteredProducts.length}</strong>
           </span>
         </div>
 
         {/* Table */}
-        <div className="border border-[#282630] bg-[#16151a] overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[#E8E5DF] overflow-hidden shadow-sm">
           {loading ? (
-            <div className="p-8 text-center text-xs text-[#6c697b] animate-pulse">LOADING MERCHANT CATALOGUE...</div>
+            <div className="p-12 text-center text-xs text-[#71717A] animate-pulse">Loading merchant catalog...</div>
           ) : filteredProducts.length === 0 ? (
             <div className="p-16 text-center space-y-4">
-              <Package className="h-10 w-10 text-[#6c697b] mx-auto" />
-              <h3 className="text-base font-bold uppercase text-white">NO PRODUCTS FOUND</h3>
-              <p className="text-xs text-[#6c697b]">No products match your current search parameter.</p>
+              <Package className="h-12 w-12 text-[#B8865B] mx-auto opacity-60" />
+              <h3 className="text-lg font-bold text-[#1A1A1A]">No Products Found</h3>
+              <p className="text-xs text-[#6B6B6B]">No items match your search parameter.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-[#282630] text-[#6c697b] uppercase bg-[#0f0e13]">
-                    <th className="p-4 font-bold">IMAGE</th>
-                    <th className="p-4 font-bold">PRODUCT NAME & ID</th>
-                    <th className="p-4 font-bold">PRICE</th>
-                    <th className="p-4 font-bold">STOCK</th>
-                    <th className="p-4 font-bold text-right">ACTIONS</th>
+                  <tr className="border-b border-[#E8E5DF] text-[#71717A] uppercase bg-[#F8F7F4]">
+                    <th className="p-4 font-bold">Image</th>
+                    <th className="p-4 font-bold">Product Name & SKU</th>
+                    <th className="p-4 font-bold">Price</th>
+                    <th className="p-4 font-bold">Stock</th>
+                    <th className="p-4 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#282630]">
+                <tbody className="divide-y divide-[#E8E5DF]">
                   {filteredProducts.map((product) => (
-                    <tr key={product.product_id} className="hover:bg-[#1c1b22] text-white">
+                    <tr key={product.product_id} className="hover:bg-[#F8F7F4] text-[#1A1A1A] transition-colors">
                       <td className="p-4">
-                        <div className="h-12 w-12 bg-[#0f0e13] border border-[#282630] overflow-hidden flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-[#F8F7F4] border border-[#E8E5DF] overflow-hidden flex items-center justify-center">
                           {product.image_url ? (
                             <img src={product.image_url} alt={product.product_name} className="h-full w-full object-cover" />
                           ) : (
-                            <ImageIcon className="h-5 w-5 text-[#6c697b]" />
+                            <ImageIcon className="h-5 w-5 text-[#71717A] opacity-30" />
                           )}
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-white uppercase">{product.product_name}</div>
-                        <div className="text-[10px] text-[#d4a373]">SLOT #FW-00{product.product_id}</div>
+                        <div className="font-bold text-[#1A1A1A] text-sm">{product.product_name}</div>
+                        <div className="text-[11px] text-[#B8865B] font-semibold">SKU: MB-00{product.product_id}</div>
                       </td>
-                      <td className="p-4 font-bold text-white">
+                      <td className="p-4 font-bold font-display text-sm text-[#1A1A1A]">
                         ${parseFloat(product.price).toFixed(2)} USD
                       </td>
                       <td className="p-4">
@@ -299,17 +300,17 @@ const SellerProducts = () => {
                               setImagePreview(product.image_url);
                               setShowModal(true);
                             }}
-                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#a19fad] hover:text-white hover:border-[#d4a373]"
-                            title="Edit"
+                            className="p-2 border border-[#E8E5DF] bg-[#F8F7F4] text-[#52525B] hover:text-[#1A1A1A] hover:bg-[#E8E5DF] rounded-xl transition-colors"
+                            title="Edit Product"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => setDeleteId(product.product_id)}
-                            className="p-2 border border-[#282630] bg-[#0f0e13] text-[#6c697b] hover:text-red-400 hover:border-red-400"
-                            title="Delete"
+                            className="p-2 border border-[#E8E5DF] bg-[#F8F7F4] text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                            title="Delete Product"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -322,21 +323,21 @@ const SellerProducts = () => {
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="p-4 border-t border-[#282630] bg-[#0f0e13] flex justify-between items-center text-xs">
+            <div className="p-4 border-t border-[#E8E5DF] bg-[#F8F7F4] flex justify-between items-center text-xs">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+                className="px-4 py-2 border border-[#E8E5DF] bg-white text-[#1A1A1A] rounded-xl disabled:opacity-40 font-semibold"
               >
-                PREVIOUS
+                Previous
               </button>
-              <span className="text-[#6c697b]">PAGE {page} OF {totalPages}</span>
+              <span className="text-[#71717A]">Page {page} of {totalPages}</span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 border border-[#282630] bg-[#16151a] text-white disabled:opacity-40"
+                className="px-4 py-2 border border-[#E8E5DF] bg-white text-[#1A1A1A] rounded-xl disabled:opacity-40 font-semibold"
               >
-                NEXT
+                Next
               </button>
             </div>
           )}
@@ -345,109 +346,109 @@ const SellerProducts = () => {
 
       {/* Add / Edit Modal */}
       <Dialog open={showModal} onClose={() => setShowModal(false)}>
-        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-lg w-full font-mono-tech text-xs">
-          <DialogHeader className="pb-4 border-b border-[#282630] flex flex-row items-center justify-between">
+        <div className="bg-white border border-[#E8E5DF] rounded-2xl text-[#1A1A1A] p-8 max-w-lg w-full shadow-2xl">
+          <DialogHeader className="pb-4 border-b border-[#E8E5DF] flex flex-row items-center justify-between">
             <div>
-              <DialogTitle className="text-lg uppercase font-bold text-white">
-                {editProduct ? "EDIT PRODUCT LISTING" : "CREATE NEW PRODUCT"}
+              <DialogTitle className="text-xl font-bold font-serif-editorial text-[#1A1A1A]">
+                {editProduct ? "Edit Product Listing" : "Create New Product"}
               </DialogTitle>
-              <DialogDescription className="text-xs text-[#a19fad]">
-                Fill out product details to list on Furniture Waley Marketplace.
+              <DialogDescription className="text-xs text-[#6B6B6B] mt-1">
+                Fill out details to publish on Market Bros Marketplace.
               </DialogDescription>
             </div>
-            <button onClick={() => setShowModal(false)} className="p-1 text-[#6c697b] hover:text-white">
+            <button onClick={() => setShowModal(false)} className="p-2 text-gray-400 hover:text-[#1A1A1A] hover:bg-[#F8F7F4] rounded-xl">
               <X className="h-4 w-4" />
             </button>
           </DialogHeader>
 
-          <form onSubmit={editProduct ? handleUpdate : handleSubmit} className="space-y-4 my-6">
+          <form onSubmit={editProduct ? handleUpdate : handleSubmit} className="space-y-4 my-6 text-xs">
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">PRODUCT NAME*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Product Name*</label>
               <input
                 type="text"
                 value={form.product_name}
                 onChange={(e) => setForm({ ...form, product_name: e.target.value })}
                 required
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               />
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">DESCRIPTION</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Description</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block uppercase text-[#a19fad] mb-1">PRICE (USD)*</label>
+                <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Price (USD)*</label>
                 <input
                   type="number"
                   step="0.01"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                   required
-                  className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                  className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-[#a19fad] mb-1">STOCK UNITS*</label>
+                <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Stock Units*</label>
                 <input
                   type="number"
                   value={form.stock}
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
                   required
-                  className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                  className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">CATEGORY ID*</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Category ID*</label>
               <input
                 type="text"
                 value={form.category_id}
                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                placeholder="1 (Furniture), 2 (Lighting), etc."
+                placeholder="1 (Furniture), 2 (Home Decor), 3 (Electronics), 4 (Appliances)"
                 required
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2.5 text-xs text-white focus:outline-none focus:border-[#d4a373]"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-3 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#B8865B]"
               />
             </div>
 
             <div>
-              <label className="block uppercase text-[#a19fad] mb-1">PRODUCT IMAGE FILE</label>
+              <label className="block font-bold uppercase tracking-wider text-[#1A1A1A] mb-1">Product Image File</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full bg-[#0f0e13] border border-[#282630] p-2 text-xs text-white"
+                className="w-full bg-[#F8F7F4] border border-[#E8E5DF] rounded-xl p-2.5 text-xs text-[#1A1A1A]"
               />
               {imagePreview && (
-                <div className="mt-2 h-20 w-20 bg-[#0f0e13] border border-[#282630] overflow-hidden">
+                <div className="mt-2 h-20 w-20 rounded-xl bg-[#F8F7F4] border border-[#E8E5DF] overflow-hidden">
                   <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-3 pt-3">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="flex-1 py-2.5 border border-[#282630] bg-[#0f0e13] text-xs font-mono-tech text-white uppercase"
+                className="flex-1 py-3 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl hover:bg-[#E8E5DF]"
               >
-                CANCEL
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-2.5 bg-white text-black font-mono-tech font-bold text-xs uppercase hover:bg-[#d4a373] transition-colors"
+                className="flex-1 py-3 bg-[#1A1A1A] text-white font-semibold text-xs rounded-xl hover:bg-[#B8865B] transition-colors shadow-md"
               >
-                {submitting ? "SAVING..." : editProduct ? "UPDATE PRODUCT" : "CREATE PRODUCT"}
+                {submitting ? "Saving..." : editProduct ? "Update Product" : "Publish Product"}
               </button>
             </div>
           </form>
@@ -456,23 +457,23 @@ const SellerProducts = () => {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <div className="bg-[#16151a] border border-[#282630] text-white p-6 max-w-md w-full font-mono-tech text-xs space-y-4">
-          <h3 className="text-base font-bold uppercase text-white">CONFIRM DELETION</h3>
-          <p className="text-xs text-[#a19fad]">
+        <div className="bg-white border border-[#E8E5DF] rounded-2xl text-[#1A1A1A] p-6 max-w-md w-full shadow-2xl space-y-4">
+          <h3 className="text-lg font-bold font-serif-editorial text-[#1A1A1A]">Confirm Deletion</h3>
+          <p className="text-xs text-[#6B6B6B]">
             Are you sure you want to delete Product #{deleteId}? This action cannot be undone.
           </p>
           <div className="flex gap-3 pt-2">
             <button
               onClick={() => setDeleteId(null)}
-              className="flex-1 py-2 border border-[#282630] bg-[#0f0e13] text-white uppercase"
+              className="flex-1 py-2.5 border border-[#E8E5DF] bg-[#F8F7F4] text-xs font-semibold text-[#1A1A1A] rounded-xl"
             >
-              CANCEL
+              Cancel
             </button>
             <button
               onClick={handleDelete}
-              className="flex-1 py-2 bg-red-500 text-white font-bold uppercase hover:bg-red-600"
+              className="flex-1 py-2.5 bg-red-600 text-white font-semibold text-xs rounded-xl hover:bg-red-700 shadow-md"
             >
-              DELETE
+              Delete Product
             </button>
           </div>
         </div>

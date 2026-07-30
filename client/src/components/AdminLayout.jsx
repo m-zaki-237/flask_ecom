@@ -5,29 +5,29 @@ import { Menu } from "lucide-react";
 import { Sheet } from "@/components/ui/sheet";
 
 const pageTitles = {
-  "/admin/dashboard": "SYSTEM OVERVIEW & STATS",
-  "/admin/products": "GLOBAL CATALOG & BUILD SLOTS",
-  "/admin/orders": "GLOBAL ORDERS MANAGEMENT",
-  "/admin/payments": "SYSTEM PAYMENT SETTLEMENTS",
-  "/admin/users": "USER ACCOUNTS & SELLERS",
-  "/admin/audit_logs": "SECURITY & AUDIT LOGS",
-  "/admin/support_tickets": "SUPPORT & TICKETS CONCIERGE",
+  "/admin/dashboard": "Platform Overview & Performance Metrics",
+  "/admin/products": "Global Marketplace Product Catalog",
+  "/admin/orders": "Global Order Fulfillment & Tracking",
+  "/admin/payments": "System Financial Settlements & Revenue",
+  "/admin/users": "User Accounts & Verified Merchants",
+  "/admin/audit_logs": "Security Audit & System Logs",
+  "/admin/support_tickets": "Support & Concierge Inquiries",
 };
 
 const AdminLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
-  const currentTitle = pageTitles[location.pathname] || "ADMIN CONTROL PORTAL";
+  const currentTitle = pageTitles[location.pathname] || "Admin Control Portal";
 
   return (
-    <div className="flex min-h-screen bg-[#0f0e13] text-[#f3f3f5] font-sans selection:bg-[#d4a373] selection:text-black">
+    <div className="flex min-h-screen bg-[#F8F7F4] text-[#1A1A1A] font-sans selection:bg-[#B8865B] selection:text-white">
       {/* Desktop Sidebar */}
       <AdminSidebar />
 
       {/* Mobile Drawer */}
       <Sheet open={mobileOpen} onClose={() => setMobileOpen(false)} side="left">
-        <div className="w-64 h-full bg-[#16151a]">
+        <div className="w-64 h-full bg-[#FFFFFF]">
           <AdminSidebarContent onNavClick={() => setMobileOpen(false)} />
         </div>
       </Sheet>
@@ -35,28 +35,28 @@ const AdminLayout = ({ children }) => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#282630] bg-[#0f0e13]/90 backdrop-blur-md px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#E8E5DF] bg-white/90 backdrop-blur-md px-6 sm:px-8">
+          <div className="flex items-center gap-4">
             <button
-              className="lg:hidden p-2 border border-[#282630] bg-[#16151a] text-white"
+              className="lg:hidden p-2 border border-[#E8E5DF] rounded-xl bg-[#F8F7F4] text-[#1A1A1A]"
               onClick={() => setMobileOpen(true)}
             >
-              <Menu className="h-4 w-4 text-[#d4a373]" />
+              <Menu className="h-5 w-5 text-[#B8865B]" />
             </button>
 
-            <h1 className="text-sm font-mono-tech uppercase font-bold tracking-wider text-white">
+            <h1 className="text-base font-bold font-serif-editorial text-[#1A1A1A]">
               {currentTitle}
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono-tech">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="uppercase text-emerald-400">ADMIN CONTROL ACTIVE</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+            <span className="h-2 w-2 rounded-full bg-amber-600 animate-pulse" />
+            <span>Admin Active</span>
           </div>
         </header>
 
         {/* Page Content Container */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 sm:p-8 lg:p-10 max-w-7xl w-full mx-auto space-y-8">
           {children}
         </main>
       </div>
