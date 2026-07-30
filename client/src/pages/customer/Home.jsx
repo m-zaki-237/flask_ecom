@@ -224,7 +224,7 @@ export default function Home() {
     { category_id: 4, category_name: "Modern Appliances" },
   ];
 
-  const displayCategories = (categories.length > 0 ? categories : defaultCategoriesList).slice(0, 3);
+  const displayCategories = categories.length > 0 ? categories : defaultCategoriesList;
 
   const handleCategoryClick = (catId) => {
     setSelectedCategory(catId);
@@ -329,7 +329,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {displayCategories.map((cat) => (
               <div
                 key={cat.category_id}
