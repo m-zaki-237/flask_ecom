@@ -12,7 +12,3 @@ instance/
 
 # Editor
 .vscode/
-
-# Database seed files
-seeder/
-*.sql
